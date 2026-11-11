@@ -1,0 +1,2334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alam Creative Academy | Learning Management System</title>
+<meta name="description" content="Alam Creative Academy learning management system for students and administrators, with subjects, lectures, notes, tests, progress tracking and student support." />
+<meta name="theme-color" content="#0B1A33" />
+<meta property="og:title" content="Alam Creative Academy | LMS" />
+<meta property="og:description" content="A modern learning management platform for Alam Creative Academy." />
+<meta property="og:type" content="website" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0B1A33; --navy-dark:#081327; --navy-mid:#132A52; --navy-soft:#1D3B6E;
+    --gold:#E8A93B; --gold-dark:#CC8F26; --gold-soft:#FCEFD6;
+    --bg:#F5F7FB; --card:#FFFFFF; --ink:#151E30; --sub:#71798C; --line:#E9ECF3;
+    --green:#0F9D65; --green-bg:#E4F7EE;
+    --purple:#6D4FE0; --purple-bg:#EEEAFB;
+    --blue:#2C5CE0; --blue-bg:#E9EFFD;
+    --red:#DC3545; --red-bg:#FDEAEC;
+    --amber:#C77D12; --amber-bg:#FBF0DC;
+    --radius:18px; --radius-sm:12px;
+    --shadow-sm:0 1px 2px rgba(11,26,51,.05), 0 1px 1px rgba(11,26,51,.03);
+    --shadow-md:0 8px 24px -8px rgba(11,26,51,.14);
+    --shadow-gold:0 6px 18px -6px rgba(232,169,59,.45);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;}
+  h1,h2,h3,.font-display{font-family:'Poppins',sans-serif;}
+  a{text-decoration:none;color:inherit;}
+  button{font-family:inherit;cursor:pointer;}
+  ::-webkit-scrollbar{width:8px;height:8px;}
+  ::-webkit-scrollbar-thumb{background:#c7d0e0;border-radius:8px;}
+
+  #app{display:flex;min-height:100vh;}
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{width:264px;flex-shrink:0;background:linear-gradient(180deg,var(--navy) 0%,var(--navy-dark) 100%);color:#8E9BB8;padding:20px 14px;position:sticky;top:0;height:100vh;overflow-y:auto;transition:transform .25s ease;z-index:40;}
+  .brand{display:flex;align-items:center;gap:11px;padding:6px 10px 26px;}
+  .brand .mark{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--gold),var(--gold-dark));display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;box-shadow:var(--shadow-gold);}
+  .brand .name{font-family:'Poppins',sans-serif;font-weight:700;color:#fff;font-size:14px;line-height:1.2;letter-spacing:-.01em;}
+  .brand .name span{display:block;color:var(--gold);font-size:10.5px;font-weight:600;letter-spacing:1.2px;margin-top:1px;}
+  .nav-group{display:flex;flex-direction:column;gap:2px;margin-bottom:6px;}
+  .nav-item{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;font-size:13.5px;font-weight:500;color:#8E9BB8;background:transparent;border:none;width:100%;text-align:left;position:relative;transition:background .12s ease,color .12s ease;}
+  .nav-item svg{width:17px;height:17px;flex-shrink:0;opacity:.85;}
+  .nav-item:hover{background:rgba(255,255,255,.05);color:#E7ECF7;}
+  .nav-item.active{background:rgba(232,169,59,.12);color:#fff;font-weight:600;}
+  .nav-item.active svg{opacity:1;color:var(--gold);}
+  .nav-item.active::before{content:'';position:absolute;left:-14px;top:8px;bottom:8px;width:3px;border-radius:0 3px 3px 0;background:var(--gold);}
+  .nav-label{font-size:10.5px;font-weight:700;letter-spacing:.8px;color:#4C5A7A;text-transform:uppercase;padding:14px 12px 6px;}
+  .nav-sep{height:1px;background:rgba(255,255,255,.07);margin:10px 4px;}
+
+  .main{flex:1;min-width:0;}
+
+  /* ---------- Topbar ---------- */
+  .topbar{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:13px 24px;}
+  .menu-btn{display:none;background:none;border:1px solid var(--line);border-radius:10px;padding:8px;color:var(--sub);}
+  .search-box{flex:1;max-width:440px;display:flex;align-items:center;gap:9px;background:var(--bg);border:1px solid transparent;border-radius:11px;padding:9px 14px;color:var(--sub);font-size:13px;}
+  .topbar-right{display:flex;align-items:center;gap:18px;margin-left:auto;}
+  .bell{position:relative;color:var(--navy);width:36px;height:36px;border-radius:10px;background:var(--bg);display:flex;align-items:center;justify-content:center;}
+  .bell .dot{position:absolute;top:-3px;right:-3px;background:var(--red);color:#fff;font-size:9.5px;font-weight:700;border-radius:50%;width:15px;height:15px;display:flex;align-items:center;justify-content:center;border:2px solid #fff;}
+  .user-chip{display:flex;align-items:center;gap:10px;padding-left:14px;border-left:1px solid var(--line);}
+  .avatar{width:36px;height:36px;border-radius:11px;background:linear-gradient(135deg,var(--navy-soft),var(--navy));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;}
+  .user-chip .u-name{font-weight:700;font-size:13px;line-height:1.1;}
+  .user-chip .u-role{font-size:11px;color:var(--sub);}
+  .content{padding:22px;max-width:1500px;margin:0 auto;}
+
+  /* ---------- Cards ---------- */
+  .card{background:var(--card);border-radius:var(--radius);border:1px solid var(--line);box-shadow:var(--shadow-sm);transition:box-shadow .15s ease;}
+  .card-pad{padding:22px;}
+  .section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;}
+  .section-head h2{margin:0;font-size:15.5px;font-weight:700;letter-spacing:-.01em;}
+  .view-all{font-size:12px;font-weight:700;color:var(--blue);}
+  .grid{display:grid;gap:18px;}
+  .btn{border:none;border-radius:10px;padding:9px 16px;font-weight:600;font-size:13px;display:inline-flex;align-items:center;gap:6px;transition:filter .12s ease,transform .12s ease;}
+  .btn-gold{background:var(--gold);color:var(--navy-dark);box-shadow:var(--shadow-gold);}
+  .btn-gold:hover{filter:brightness(1.04);}
+  .btn-navy{background:var(--navy);color:#fff;}
+  .btn-outline{background:#fff;border:1px solid var(--line);color:var(--ink);}
+  .btn-blue{background:var(--blue);color:#fff;}
+  .btn-sm{padding:6px 11px;font-size:12px;}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+  .pill{padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;}
+  .pill-green{background:var(--green-bg);color:var(--green);}
+  .pill-amber{background:var(--amber-bg);color:var(--amber);}
+  .pill-red{background:var(--red-bg);color:var(--red);}
+  .pill-blue{background:var(--blue-bg);color:var(--blue);}
+
+  .dash-grid{display:grid;grid-template-columns:2.5fr 1fr;gap:18px;align-items:start;}
+  .hero{background:radial-gradient(120% 160% at 100% 0%, rgba(232,169,59,.16), transparent 55%), linear-gradient(120deg,var(--navy) 0%,var(--navy-soft) 100%);border-radius:22px;padding:32px 34px;color:#fff;position:relative;overflow:hidden;min-height:180px;box-shadow:var(--shadow-md);}
+  .hero h1{margin:0 0 6px;font-size:25px;line-height:1.3;font-weight:700;letter-spacing:-.01em;}
+  .hero h1 .hi{color:var(--gold);}
+  .hero p{margin:0 0 18px;color:#AEB9D4;font-size:13.5px;}
+  .hero .btn{box-shadow:var(--shadow-gold);}
+  .progress-ring{position:relative;width:150px;height:150px;margin:6px auto 4px;}
+  .progress-ring svg{transform:rotate(-90deg);}
+  .progress-ring .pct{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .progress-ring .pct b{font-size:24px;color:var(--navy);font-family:'Poppins',sans-serif;line-height:1.2;}
+  .progress-ring .pct span{font-size:10px;color:var(--sub);font-weight:600;letter-spacing:.2px;}
+  .stat-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px dashed var(--line);font-size:13px;}
+  .stat-row:last-child{border-bottom:none;}
+  .stat-row .lbl{display:flex;align-items:center;gap:8px;color:var(--ink);font-weight:500;}
+  .stat-row .val{font-weight:700;color:var(--navy);}
+
+  .subj-grid{grid-template-columns:repeat(5,1fr);}
+  .subj-card{padding:20px 14px;text-align:center;border-radius:16px;border:1px solid var(--line);background:#fff;transition:transform .12s ease,box-shadow .12s ease;}
+  .subj-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
+  .subj-icon{width:50px;height:50px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 12px;}
+  .subj-card h3{margin:0 0 3px;font-size:14.5px;font-weight:700;}
+  .subj-card p{margin:0 0 14px;font-size:11.5px;color:var(--sub);}
+  .subj-card .btn{width:100%;justify-content:center;}
+
+  .lecture-row{display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--line);flex-wrap:wrap;}
+  .lecture-row:last-child{border-bottom:none;}
+  .lecture-thumb{width:64px;height:44px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff;}
+  .lecture-info{flex:1;min-width:150px;}
+  .lecture-info h4{margin:0;font-size:13.5px;}
+  .lecture-info p{margin:2px 0 6px;font-size:11.5px;color:var(--sub);}
+  .bar-track{height:6px;background:var(--line);border-radius:6px;width:180px;max-width:40vw;}
+  .bar-fill{height:6px;border-radius:6px;background:var(--blue);}
+  .lecture-meta{font-size:11.5px;color:var(--sub);font-weight:600;margin-right:10px;white-space:nowrap;}
+
+  .side-card{margin-bottom:18px;}
+  .test-item{padding:12px;border:1px solid var(--line);border-radius:12px;margin-bottom:10px;display:flex;gap:10px;align-items:flex-start;}
+  .test-item .ic{width:34px;height:34px;border-radius:9px;background:var(--purple-bg);color:var(--purple);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;}
+  .test-item h4{margin:0;font-size:13px;}
+  .test-item p{margin:2px 0 8px;font-size:11.5px;color:var(--sub);}
+
+  .weak-row{margin-bottom:12px;}
+  .weak-row .top{display:flex;justify-content:space-between;font-size:12.5px;font-weight:600;margin-bottom:5px;}
+  .weak-track{height:7px;border-radius:6px;background:var(--line);}
+  .weak-fill{height:7px;border-radius:6px;}
+
+  .doubt-item{display:flex;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);}
+  .doubt-item:last-child{border-bottom:none;}
+  .doubt-item .ic{width:30px;height:30px;border-radius:50%;background:var(--blue-bg);color:var(--blue);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;}
+  .doubt-item h4{margin:0;font-size:12.5px;font-weight:600;}
+  .doubt-item p{margin:2px 0 0;font-size:11px;color:var(--sub);}
+
+  .quick-grid{grid-template-columns:repeat(4,1fr);}
+  .quick-item{padding:22px 10px;text-align:center;border-radius:15px;border:1px solid var(--line);transition:transform .12s ease,box-shadow .12s ease;}
+  .quick-item:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
+  .quick-item .ic{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 9px;font-size:17px;}
+  .quick-item h4{margin:0;font-size:12.5px;font-weight:600;}
+
+  .page-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;}
+  .page-head h1{margin:0;font-size:22px;}
+  .page-head p{margin:4px 0 0;color:var(--sub);font-size:13.5px;}
+  .breadcrumb{font-size:12.5px;color:var(--sub);margin-bottom:6px;}
+  .breadcrumb a{color:var(--blue);font-weight:600;}
+
+  .subj-hero{display:flex;align-items:center;gap:16px;margin-bottom:20px;}
+  .subj-hero .big-ic{width:60px;height:60px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px;}
+  .tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin-bottom:18px;flex-wrap:wrap;}
+  .tab-btn{padding:10px 16px;font-size:13.5px;font-weight:600;color:var(--sub);border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none;}
+  .tab-btn.active{color:var(--navy);border-bottom-color:var(--gold);}
+
+  .chapter-card{padding:16px;border:1px solid var(--line);border-radius:14px;margin-bottom:12px;}
+  .chapter-card .chead{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+  .chapter-card h3{margin:0;font-size:15px;}
+  .chapter-card .cmeta{font-size:11.5px;color:var(--sub);margin-top:2px;}
+  .topic-row{display:flex;align-items:center;justify-content:space-between;padding:11px 12px;background:var(--bg);border-radius:10px;margin-top:9px;font-size:13px;flex-wrap:wrap;gap:8px;}
+  .topic-row .tname{font-weight:600;}
+  .topic-row .tmeta{color:var(--sub);font-size:11px;}
+  .topic-actions{display:flex;gap:7px;flex-wrap:wrap;}
+
+  .upload-box{border:2px dashed var(--line);border-radius:14px;padding:26px;text-align:center;color:var(--sub);font-size:13px;margin-bottom:18px;background:#fbfcfe;}
+  .upload-box input{display:none;}
+  .file-row{display:flex;align-items:center;gap:12px;padding:11px 12px;border:1px solid var(--line);border-radius:11px;margin-bottom:9px;}
+  .file-row .fic{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+  .file-row .finfo{flex:1;min-width:0;}
+  .file-row .finfo h4{margin:0;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .file-row .finfo p{margin:2px 0 0;font-size:11.5px;color:var(--sub);}
+  .icon-btn{border:none;background:var(--bg);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:var(--sub);flex-shrink:0;}
+  .icon-btn:hover{background:var(--red-bg);color:var(--red);}
+
+  form label{display:block;font-size:12.5px;font-weight:600;margin:0 0 5px;color:var(--ink);}
+  form select,form input[type=text],form input[type=number],form textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-family:inherit;font-size:13.5px;margin-bottom:14px;background:#fff;}
+  form textarea{resize:vertical;min-height:80px;}
+
+  .subj-tab-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;}
+  .subj-tab{padding:9px 15px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;gap:6px;}
+  .subj-tab.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+
+  .test-card{padding:16px;border:1px solid var(--line);border-radius:14px;margin-bottom:12px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+  .test-card .tinfo{flex:1;min-width:180px;}
+  .test-card h3{margin:0 0 3px;font-size:14.5px;}
+  .test-card p{margin:0;font-size:12px;color:var(--sub);}
+
+  .timer-badge{background:var(--navy);color:#fff;padding:8px 16px;border-radius:11px;font-weight:700;font-size:16px;display:flex;align-items:center;gap:8px;min-width:92px;justify-content:center;}
+  .timer-badge.low{background:var(--red);}
+  .runner-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px;}
+  .qprogress-track{height:8px;border-radius:6px;background:var(--line);margin-bottom:6px;}
+  .qprogress-fill{height:8px;border-radius:6px;background:var(--gold);transition:width .3s;}
+  .q-box{padding:22px;}
+  .q-box .qsubj{font-size:11.5px;font-weight:700;color:var(--purple);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;}
+  .q-box h3{font-size:16px;margin:0 0 18px;line-height:1.5;}
+  .opt{display:flex;align-items:center;gap:12px;padding:13px 15px;border:1.5px solid var(--line);border-radius:12px;margin-bottom:11px;font-size:13.5px;font-weight:500;}
+  .opt .letter{width:26px;height:26px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+  .opt.selected{border-color:var(--blue);background:var(--blue-bg);}
+  .opt.selected .letter{background:var(--blue);color:#fff;}
+  .runner-nav{display:flex;justify-content:space-between;margin-top:20px;}
+
+  .result-hero{text-align:center;padding:34px 20px;}
+  .result-hero .score{font-size:44px;font-weight:800;color:var(--navy);font-family:'Poppins',sans-serif;}
+  .result-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:22px;}
+  .rstat{padding:16px;border-radius:14px;text-align:center;}
+  .rstat b{display:block;font-size:22px;}
+  .rstat span{font-size:11.5px;color:var(--sub);font-weight:600;}
+
+  .doubt-full{display:flex;gap:10px;padding:14px;border:1px solid var(--line);border-radius:13px;margin-bottom:11px;}
+  .doubt-full .ic{width:34px;height:34px;border-radius:50%;background:var(--blue-bg);color:var(--blue);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .doubt-full h4{margin:0 0 3px;font-size:13.5px;}
+  .doubt-full p{margin:0;font-size:12px;color:var(--sub);}
+
+  .empty-state{text-align:center;padding:34px 18px;color:var(--sub);}
+  .empty-state .ic{font-size:34px;margin-bottom:10px;}
+
+  .notes-box{padding:20px;border-radius:14px;border:1px solid var(--line);background:#fbfcfe;margin-bottom:14px;}
+  .notes-box h4{margin:0 0 8px;font-size:13.5px;color:var(--navy);}
+  .notes-box ul{margin:0;padding-left:20px;}
+  .notes-box li{margin-bottom:9px;font-size:13.5px;line-height:1.6;}
+
+  .chip-select{display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border:1.5px solid var(--line);border-radius:10px;font-size:12.5px;font-weight:600;margin:0 8px 8px 0;cursor:pointer;background:#fff;}
+  .chip-select input{accent-color:var(--navy);}
+  .preset-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+  .preset-btn{padding:9px 15px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font-weight:700;font-size:13px;}
+  .preset-btn.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+
+  @media (max-width:1100px){
+    .dash-grid{grid-template-columns:1fr;}
+    .subj-grid{grid-template-columns:repeat(3,1fr);}
+    .quick-grid{grid-template-columns:repeat(2,1fr);}
+  }
+  @media (max-width:760px){
+    .sidebar{position:fixed;left:0;top:0;transform:translateX(-100%);box-shadow:0 0 40px rgba(0,0,0,.3);}
+    .sidebar.open{transform:translateX(0);}
+    .menu-btn{display:flex;}
+    .subj-grid{grid-template-columns:repeat(2,1fr);}
+    .quick-grid{grid-template-columns:repeat(2,1fr);}
+    .search-box{display:none;}
+    .content{padding:14px;}
+    .user-chip .u-role{display:none;}
+    .result-stats{grid-template-columns:1fr;}
+  }
+  .overlay{position:fixed;inset:0;background:rgba(10,20,45,.45);z-index:35;display:none;}
+  .overlay.show{display:block;}
+
+  /* ---------- Login screen ---------- */
+  .login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(120% 140% at 20% 0%, rgba(232,169,59,.10), transparent 55%), var(--navy-dark);padding:20px;}
+  .login-card{width:100%;max-width:380px;background:var(--card);border-radius:20px;box-shadow:var(--shadow-md);padding:32px 28px;}
+  .login-card .brand{padding:0 0 22px;justify-content:center;}
+  .login-card .brand .name{color:var(--navy);}
+  .login-card .brand .name span{color:var(--gold-dark);}
+  .login-card h2{margin:0 0 4px;font-size:18px;text-align:center;}
+  .login-card p.sub{margin:0 0 22px;color:var(--sub);font-size:12.5px;text-align:center;}
+  .login-error{background:var(--red-bg);color:var(--red);border-radius:10px;padding:9px 12px;font-size:12.5px;font-weight:600;margin-bottom:14px;display:none;}
+  .login-error.show{display:block;}
+  .login-hint{margin-top:16px;padding:12px 14px;border-radius:11px;background:var(--bg);font-size:11.5px;color:var(--sub);line-height:1.6;}
+  .id-badge{display:inline-flex;align-items:center;gap:5px;background:var(--gold-soft);color:var(--gold-dark);font-weight:700;font-size:11px;padding:3px 10px;border-radius:999px;letter-spacing:.2px;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="overlay" id="overlay" onclick="toggleSidebar(false)"></div>
+<script>
+/* =========================================================
+   ICONS
+========================================================= */
+const ICONS = {
+  home:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>`,
+  book:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>`,
+  clipboard:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 4H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-4"/><path d="M9 12h6M9 16h6"/></svg>`,
+  chat:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>`,
+  notes:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg>`,
+  chart:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg>`,
+  layers:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>`,
+  target:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>`,
+  user:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
+  logout:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>`,
+  search:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`,
+  bell:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>`,
+  menu:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>`,
+  play:`<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"/></svg>`,
+  upload:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>`,
+  clock:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
+  trash:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>`,
+  file:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>`,
+  video:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>`,
+  q:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 2-3 4"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
+};
+function ic(name,cls=''){return `<span class="${cls}" style="display:inline-flex">${ICONS[name]||''}</span>`;}
+
+/* =========================================================
+   AUTH / API LAYER
+   Talks to the Node backend (server.js) for login, sessions,
+   Student IDs, and file storage. Nothing here trusts the client:
+   the server re-checks auth and role on every request.
+========================================================= */
+const API = '/api';
+let CURRENT_USER = null;   // {id, studentId, name, email, role, status, createdAt, activatedAt, lastLoginAt}
+let CSRF_TOKEN = null;
+let AUTH_ERROR = '';
+let AUTH_NOTE = '';        // non-error info message on the auth screens
+let authView = 'studentLogin'; // 'studentLogin' | 'activate' | 'adminLogin'
+
+async function apiFetch(path, opts={}){
+  const headers = Object.assign({}, opts.headers||{});
+  if(opts.body && !(opts.body instanceof FormData)) headers['Content-Type']='application/json';
+  if(CSRF_TOKEN && opts.method && opts.method!=='GET') headers['X-CSRF-Token']=CSRF_TOKEN;
+  const res = await fetch(API+path, Object.assign({}, opts, {headers, credentials:'same-origin'}));
+  if(res.status===401){ CURRENT_USER=null; CSRF_TOKEN=null; render(); }
+  return res;
+}
+function fmtBytes(n){
+  if(n<1024) return n+' B';
+  if(n<1024*1024) return (n/1024).toFixed(1)+' KB';
+  return (n/1024/1024).toFixed(1)+' MB';
+}
+function fmtDate(iso){
+  if(!iso) return '—';
+  const d = new Date(iso.replace(' ','T')+(iso.includes('Z')?'':'Z'));
+  if(isNaN(d)) return iso;
+  return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
+}
+function fmtDateTime(iso){
+  if(!iso) return '—';
+  const d = new Date(iso.replace(' ','T')+(iso.includes('Z')?'':'Z'));
+  if(isNaN(d)) return iso;
+  return d.toLocaleString(undefined,{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+}
+
+async function boot(){
+  try{
+    const res = await fetch(API+'/me', {credentials:'same-origin'});
+    if(res.ok){
+      const data = await res.json();
+      CURRENT_USER = data.user; CSRF_TOKEN = data.csrfToken;
+    } else {
+      CURRENT_USER = null;
+    }
+  } catch(e){ CURRENT_USER = null; }
+  render();
+}
+
+function goAuth(v){ authView=v; AUTH_ERROR=''; AUTH_NOTE=''; render(); }
+
+async function handleStudentLoginSubmit(evt){
+  evt.preventDefault();
+  const identifier = document.getElementById('loginId').value.trim();
+  const password = document.getElementById('loginPw').value;
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  try{
+    const res = await fetch(API+'/login', {
+      method:'POST', credentials:'same-origin',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({identifier, password, portal:'student'})
+    });
+    const data = await res.json();
+    if(!res.ok){ AUTH_ERROR = data.error || 'Login failed'; btn.disabled=false; btn.textContent='Sign In'; render(); return; }
+    CURRENT_USER = data.user; CSRF_TOKEN = data.csrfToken; AUTH_ERROR='';
+    view = 'dashboard';
+    render();
+  } catch(e){
+    AUTH_ERROR = 'Could not reach the server. Please try again.';
+    render();
+  }
+}
+
+async function handleActivateSubmit(evt){
+  evt.preventDefault();
+  const studentId = document.getElementById('actId').value.trim();
+  const password = document.getElementById('actPw').value;
+  const btn = document.getElementById('actBtn');
+  btn.disabled = true; btn.textContent = 'Activating…';
+  try{
+    const res = await fetch(API+'/activate', {
+      method:'POST', credentials:'same-origin',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({studentId, password})
+    });
+    const data = await res.json();
+    if(!res.ok){ AUTH_ERROR = data.error || 'Activation failed'; btn.disabled=false; btn.textContent='Activate Account'; render(); return; }
+    CURRENT_USER = data.user; CSRF_TOKEN = data.csrfToken; AUTH_ERROR='';
+    view = 'dashboard';
+    render();
+  } catch(e){
+    AUTH_ERROR = 'Could not reach the server. Please try again.';
+    render();
+  }
+}
+
+async function handleAdminLoginSubmit(evt){
+  evt.preventDefault();
+  const identifier = document.getElementById('adminLoginId').value.trim();
+  const password = document.getElementById('adminLoginPw').value;
+  const btn = document.getElementById('adminLoginBtn');
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  try{
+    const res = await fetch(API+'/login', {
+      method:'POST', credentials:'same-origin',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({identifier, password, portal:'admin'})
+    });
+    const data = await res.json();
+    if(!res.ok){ AUTH_ERROR = data.error || 'Login failed'; btn.disabled=false; btn.textContent='Admin Login'; render(); return; }
+    CURRENT_USER = data.user; CSRF_TOKEN = data.csrfToken; AUTH_ERROR='';
+    view = 'dashboard';
+    render();
+  } catch(e){
+    AUTH_ERROR = 'Could not reach the server. Please try again.';
+    render();
+  }
+}
+
+async function doLogout(){
+  try{ await apiFetch('/logout', {method:'POST'}); } catch(e){}
+  CURRENT_USER = null; CSRF_TOKEN = null; FILES_CACHE = {lecture:null, notes:null}; ADMIN_STUDENTS = null;
+  view = 'dashboard'; authView = 'studentLogin';
+  render();
+}
+
+function renderLoginScreen(){
+  if(authView==='activate') return renderActivateScreen();
+  if(authView==='adminLogin') return renderAdminLoginScreen();
+  return renderStudentLoginScreen();
+}
+
+function renderStudentLoginScreen(){
+  return `
+  <div class="login-screen">
+    <div class="login-card">
+      <div class="brand"><div class="mark">🎓</div><div class="name">Alam Creative<span>ACADEMY</span></div></div>
+      <h2>Student Login</h2>
+      <p class="sub">Enter your Student ID and password</p>
+      <div class="login-error ${AUTH_ERROR?'show':''}">${AUTH_ERROR||''}</div>
+      <div>
+        <label>Student ID</label>
+        <input type="text" id="loginId" placeholder="ACA-001" required autocomplete="username">
+        <label>Password</label>
+        <input type="password" id="loginPw" placeholder="••••••••" required autocomplete="current-password" onkeydown="if(event.key==='Enter')handleStudentLoginSubmit(event)">
+        <button class="btn btn-gold" id="loginBtn" type="button" onclick="handleStudentLoginSubmit(event)" style="width:100%;justify-content:center;margin-top:4px;">Login</button>
+      </div>
+      <div class="login-hint" style="text-align:center;">
+        First time here? <a href="#" onclick="goAuth('activate');return false;" style="color:var(--blue);font-weight:700;">Activate Student Account</a>
+      </div>
+      <div style="text-align:center;margin-top:14px;">
+        <a href="#" onclick="goAuth('adminLogin');return false;" style="color:var(--sub);font-size:12px;font-weight:600;">Admin Login →</a>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderActivateScreen(){
+  return `
+  <div class="login-screen">
+    <div class="login-card">
+      <div class="brand"><div class="mark">🎓</div><div class="name">Alam Creative<span>ACADEMY</span></div></div>
+      <h2>Activate Student Account</h2>
+      <p class="sub">Use the Student ID and password your academy gave you</p>
+      <div class="login-error ${AUTH_ERROR?'show':''}">${AUTH_ERROR||''}</div>
+      <div>
+        <label>Student ID</label>
+        <input type="text" id="actId" placeholder="ACA-001" required autocomplete="username">
+        <label>Password</label>
+        <input type="password" id="actPw" placeholder="Password provided by your academy" required autocomplete="new-password" onkeydown="if(event.key==='Enter')handleActivateSubmit(event)">
+        <button class="btn btn-gold" id="actBtn" type="button" onclick="handleActivateSubmit(event)" style="width:100%;justify-content:center;margin-top:4px;">Activate Account</button>
+      </div>
+      <div class="login-hint">This only works if your academy admin has already created your Student ID and password. It will not create a brand-new account — it activates one that already exists.</div>
+      <div style="text-align:center;margin-top:14px;">
+        <a href="#" onclick="goAuth('studentLogin');return false;" style="color:var(--blue);font-size:12.5px;font-weight:700;">← Back to Student Login</a>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderAdminLoginScreen(){
+  return `
+  <div class="login-screen">
+    <div class="login-card">
+      <div class="brand"><div class="mark">🎓</div><div class="name">Alam Creative<span>ACADEMY</span></div></div>
+      <h2>Admin Login</h2>
+      <p class="sub">Administrator access only</p>
+      <div class="login-error ${AUTH_ERROR?'show':''}">${AUTH_ERROR||''}</div>
+      <div>
+        <label>Admin ID or Email</label>
+        <input type="text" id="adminLoginId" placeholder="admin@alamacademy.test" required autocomplete="username">
+        <label>Admin Password</label>
+        <input type="password" id="adminLoginPw" placeholder="••••••••" required autocomplete="current-password" onkeydown="if(event.key==='Enter')handleAdminLoginSubmit(event)">
+        <button class="btn btn-navy" id="adminLoginBtn" type="button" onclick="handleAdminLoginSubmit(event)" style="width:100%;justify-content:center;margin-top:4px;">Admin Login</button>
+      </div>
+      <div style="text-align:center;margin-top:14px;">
+        <a href="#" onclick="goAuth('studentLogin');return false;" style="color:var(--blue);font-size:12.5px;font-weight:700;">← Back to Student Login</a>
+      </div>
+    </div>
+  </div>`;
+}
+function mcq(q,opts,ans){return {q,opts,ans};}
+function tp(id,name,notes,questions){return {id,name,notes,questions};}
+function ch(id,name,topics){return {id,name,topics};}
+function chNotes(c){ return c.topics.flatMap(t=>t.notes); }
+function chQuestions(c){ return c.topics.flatMap(t=>t.questions.map(q=>({...q, topicId:t.id, topicName:t.name}))); }
+function chQCount(c){ return c.topics.reduce((a,t)=>a+t.questions.length,0); }
+
+/* =========================================================
+   FULL OFFICIAL PMDC MDCAT 2025 SYLLABUS -> CHAPTERS -> TOPICS
+========================================================= */
+const SUBJECTS = [
+{id:'bio', name:'Biology', emoji:'🌿', color:'var(--green)', bg:'var(--green-bg)', weight:45, chapters:[
+  ch('bc1','Acellular Life',[
+    tp('bc1t1','Viruses',
+      ["Viruses are acellular, obligate intracellular parasites classified by nucleic acid type, number of strands, shape and host range.",
+       "They lack organelles and ribosomes and cannot reproduce outside a living host cell."],
+      [mcq("Viruses are classified mainly on the basis of:",["Size","Nucleic acid type and structure","Color","Habitat"],1),
+       mcq("Viruses lack which of the following?",["Nucleic acid","Protein coat","Ribosomes","Genetic material"],2),
+       mcq("A virus outside a host cell is best described as:",["Metabolically active","Biologically inert","Reproducing rapidly","Photosynthetic"],1)]),
+    tp('bc1t2','AIDS and HIV Infection',
+      ["HIV is a retrovirus that infects helper T-lymphocytes, causing AIDS.",
+       "HIV transmits through blood, sexual contact, and mother-to-child transmission.",
+       "AIDS symptoms include severe immune suppression, opportunistic infections, and weight loss."],
+      [mcq("HIV primarily attacks which cells?",["Red blood cells","Helper T-lymphocytes","Platelets","Neurons"],1),
+       mcq("Which of these is NOT a mode of HIV transmission?",["Blood transfusion","Sexual contact","Casual handshake","Mother to child"],2),
+       mcq("AIDS is caused by a:",["Bacterium","Retrovirus","Fungus","Protozoan"],1)]),
+  ]),
+  ch('bc2','Bioenergetics',[
+    tp('bc2t1','Cellular Respiration Overview',
+      ["Cellular respiration breaks down glucose, proteins and fats to release energy as ATP.",
+       "All respiration pathways of glucose, protein and fat converge on the Krebs cycle and electron transport chain."],
+      [mcq("The main energy currency produced during respiration is:",["NADH","ATP","Glucose","Oxygen"],1),
+       mcq("All respiratory pathways of glucose, protein and fat converge at the:",["Cell membrane","Krebs cycle","Nucleus","Golgi body"],1)]),
+    tp('bc2t2','Respiration of Proteins and Fats',
+      ["Proteins are deaminated and their carbon skeletons enter respiration pathways at various points.",
+       "Fats are broken into glycerol and fatty acids; fatty acids undergo beta-oxidation to yield acetyl-CoA.",
+       "Fat respiration yields more ATP per gram than carbohydrates due to higher energy content."],
+      [mcq("Fatty acids are broken down by a process called:",["Glycolysis","Beta-oxidation","Deamination","Photolysis"],1),
+       mcq("Protein respiration begins with the removal of:",["Carbon group","Amino group (deamination)","Hydroxyl group","Phosphate group"],1),
+       mcq("Compared to carbohydrates, fats yield:",["Less ATP per gram","Equal ATP per gram","More ATP per gram","No ATP"],2),
+       mcq("Glycerol from fat breakdown enters respiration via:",["Krebs cycle directly","Glycolysis pathway","Electron transport chain","It is not used"],1)]),
+  ]),
+  ch('bc3','Biological Molecules',[
+    tp('bc3t1','Water & Carbohydrates',
+      ["Biological molecules are classified as carbohydrates, proteins, lipids, and nucleic acids.",
+       "Water is essential for life due to polarity, high specific heat, cohesion, and its role as a universal solvent.",
+       "Carbohydrates include monosaccharides (glucose), oligosaccharides (sucrose, lactose) and polysaccharides (starch, cellulose, glycogen)."],
+      [mcq("Which property of water allows it to dissolve many substances?",["High density","Polarity","Low specific heat","Non-polarity"],1),
+       mcq("Glucose is an example of a:",["Polysaccharide","Monosaccharide","Disaccharide","Lipid"],1)]),
+    tp('bc3t2','Proteins & Lipids',
+      ["Proteins are made of amino acids linked by peptide bonds; structure determines function.",
+       "Lipids include phospholipids, triglycerides, and esters formed from alcohol and fatty acids."],
+      [mcq("Proteins are polymers of:",["Nucleotides","Amino acids","Monosaccharides","Fatty acids"],1),
+       mcq("Triglycerides are formed from glycerol and:",["Amino acids","Fatty acids","Nucleotides","Monosaccharides"],1)]),
+    tp('bc3t3','Nucleic Acids (RNA/DNA) & Conjugated Molecules',
+      ["RNA is single-stranded and functions in protein synthesis; DNA is double helical (Watson-Crick model) and stores genetic information as genes.",
+       "Conjugated molecules like glycoproteins and glycolipids combine carbohydrates with proteins or lipids."],
+      [mcq("The DNA double helix model was proposed by:",["Mendel","Darwin","Watson and Crick","Lamarck"],2),
+       mcq("A gene is best defined as:",["A protein molecule","A sequence of nucleotides coding for a polypeptide","A type of carbohydrate","A cell organelle"],1),
+       mcq("Glycoproteins are examples of:",["Simple lipids","Conjugated molecules","Monosaccharides","Amino acids"],1)]),
+  ]),
+  ch('bc4','Cell Structure & Function',[
+    tp('bc4t1','Animal vs Plant & Prokaryotic vs Eukaryotic Cells',
+      ["Animal and plant cells share common organelles but plant cells additionally have a cell wall, chloroplasts, and a large central vacuole.",
+       "Prokaryotic cells lack a membrane-bound nucleus and organelles; eukaryotic cells have both."],
+      [mcq("Which organelle is absent in prokaryotic cells?",["Ribosome","Membrane-bound nucleus","Cell membrane","Cytoplasm"],1),
+       mcq("Which structure is found in plant cells but not animal cells?",["Nucleus","Mitochondria","Cell wall","Ribosome"],2)]),
+    tp('bc4t2','Cytoplasmic Organelles',
+      ["Mitochondria are the site of aerobic respiration and ATP production; they have a double membrane with cristae.",
+       "The nucleus houses chromatin/DNA and controls cell activities.",
+       "Endoplasmic reticulum (rough and smooth) is involved in protein and lipid synthesis; Golgi apparatus modifies and packages proteins."],
+      [mcq("The double membrane organelle responsible for ATP production is the:",["Golgi apparatus","Mitochondrion","Lysosome","Vacuole"],1),
+       mcq("Rough endoplasmic reticulum is studded with:",["Chlorophyll","Ribosomes","Chromosomes","Cristae"],1),
+       mcq("The Golgi apparatus is mainly responsible for:",["Photosynthesis","Modifying and packaging proteins","DNA replication","ATP synthesis"],1)]),
+    tp('bc4t3','Chromosomes',
+      ["Chromosomes are made of DNA and protein (histones) and carry hereditary information."],
+      [mcq("Chromosomes are chemically composed of DNA and:",["Lipids","Histone proteins","Carbohydrates only","RNA only"],1)]),
+  ]),
+  ch('bc5','Coordination & Control (Nervous & Chemical)',[
+    tp('bc5t1','Receptors & Neurons',
+      ["Receptors are transducers that convert stimuli (light, sound, chemical, pressure) into nerve impulses.",
+       "A typical neuron has a cell body, dendrites (receive signals), an axon (transmits impulses), and a myelin sheath (speeds conduction).",
+       "A nerve impulse is an electrochemical signal traveling along a neuron.",
+       "Reflexes are rapid, involuntary responses; a reflex arc includes receptor, sensory neuron, relay neuron, motor neuron, and effector."],
+      [mcq("Which part of a neuron receives incoming signals?",["Axon","Dendrite","Myelin sheath","Cell body only"],1),
+       mcq("The myelin sheath functions to:",["Produce neurotransmitters","Speed up nerve impulse conduction","Store genetic material","Generate ATP"],1),
+       mcq("A reflex arc does NOT typically include a:",["Receptor","Sensory neuron","Motor neuron","Golgi apparatus"],3),
+       mcq("Receptors function as biological:",["Effectors","Transducers","Hormones","Enzymes"],1)]),
+    tp('bc5t2','The Brain',
+      ["The brain has major parts: cerebrum (thought, voluntary action), cerebellum (balance, coordination), and brain stem (vital functions like breathing)."],
+      [mcq("Balance and coordination of movement are controlled mainly by the:",["Cerebrum","Cerebellum","Spinal cord","Medulla"],1),
+       mcq("Which brain region controls vital involuntary functions like breathing?",["Cerebrum","Cerebellum","Brain stem","Cerebral cortex"],2)]),
+  ]),
+  ch('bc6','Enzymes',[
+    tp('bc6t1','Enzyme Characteristics & Mechanism of Action',
+      ["Enzymes are biological catalysts, mostly proteins, that speed up reactions without being consumed.",
+       "They work by lowering activation energy, often via the lock-and-key or induced-fit model."],
+      [mcq("Enzymes increase reaction rate by:",["Increasing activation energy","Lowering activation energy","Consuming the substrate","Raising temperature"],1),
+       mcq("Most enzymes are made of:",["Carbohydrates","Lipids","Proteins","Nucleic acids"],2),
+       mcq("The model describing enzyme-substrate binding with a flexible active site is called:",["Lock-and-key","Induced fit","Fixed key","Static site"],1)]),
+    tp('bc6t2','Factors Affecting Enzyme Action & Inhibitors',
+      ["Enzyme activity is affected by temperature, pH, and substrate/enzyme concentration; extreme conditions denature enzymes.",
+       "Inhibitors reduce enzyme activity: competitive inhibitors bind the active site, non-competitive inhibitors bind elsewhere."],
+      [mcq("A competitive inhibitor works by:",["Binding the active site","Destroying the enzyme","Binding away from the active site","Increasing substrate concentration"],0),
+       mcq("Extreme heat affects enzymes by causing:",["Activation","Denaturation","Replication","Hydrolysis only"],1),
+       mcq("Which factor does NOT typically affect enzyme activity?",["Temperature","pH","Substrate concentration","Cell color"],3)]),
+  ]),
+  ch('bc7','Evolution',[
+    tp('bc7t1','Lamarckism',
+      ["Lamarck proposed the theory of inheritance of acquired characteristics — traits developed during an organism's life are passed to offspring (now largely discredited)."],
+      [mcq("Lamarck's theory is based on:",["Natural selection","Inheritance of acquired characteristics","Genetic drift","Mutation only"],1),
+       mcq("Lamarck's theory is considered:",["Fully accepted today","Largely discredited","The basis of modern genetics","Proven experimentally"],1)]),
+    tp('bc7t2','Darwinism',
+      ["Evolution explains how species change over time through descent with modification.",
+       "Darwin proposed natural selection: individuals with favorable variations survive and reproduce more, passing traits to offspring over generations.",
+       "Natural selection requires variation, heritability, and differential survival/reproduction."],
+      [mcq("Darwin's theory of evolution is based on:",["Use and disuse","Natural selection","Special creation","Spontaneous generation"],1),
+       mcq("Natural selection favors organisms that are:",["Largest in size","Best adapted to their environment","Oldest in the population","Most numerous initially"],1),
+       mcq("Which is a requirement for natural selection to occur?",["No variation in population","Heritable variation","Identical individuals","Absence of reproduction"],1)]),
+  ]),
+  ch('bc8','Reproduction',[
+    tp('bc8t1','Reproductive Systems & Menstrual Cycle',
+      ["The male reproductive system produces sperm and testosterone; the female system produces eggs and hormones (estrogen, progesterone).",
+       "The menstrual cycle is regulated by hormones (FSH, LH, estrogen, progesterone) and prepares the uterus for possible pregnancy."],
+      [mcq("The female hormone primarily responsible for maintaining the uterine lining is:",["Testosterone","Progesterone","Insulin","Adrenaline"],1),
+       mcq("FSH and LH are secreted by the:",["Ovary","Pituitary gland","Thyroid","Testis"],1),
+       mcq("Sperm are produced in the:",["Ovary","Testis","Uterus","Prostate only"],1),
+       mcq("The menstrual cycle primarily prepares the body for:",["Digestion","Possible pregnancy","Respiration","Excretion"],1)]),
+    tp('bc8t2','Sexually Transmitted Diseases',
+      ["Common sexually transmitted diseases include gonorrhea, syphilis, and HIV/AIDS, each with distinct causative agents and symptoms."],
+      [mcq("Which of the following is a sexually transmitted disease caused by a bacterium?",["AIDS","Gonorrhea","Common cold","Malaria"],1)]),
+  ]),
+  ch('bc9','Support & Movement',[
+    tp('bc9t1','Human Skeleton',
+      ["The human skeleton is made of bone and cartilage; bone is rigid and mineralized, cartilage is flexible connective tissue."],
+      [mcq("Which connective tissue is more flexible than bone?",["Cartilage","Enamel","Keratin","Cementum"],0)]),
+    tp('bc9t2','Muscles & Muscle Contraction',
+      ["Muscles are of three types: skeletal (voluntary, striated), cardiac (involuntary, striated, found in heart), and smooth (involuntary, non-striated).",
+       "Skeletal muscle contraction occurs via the sliding filament mechanism involving actin and myosin filaments."],
+      [mcq("Which muscle type is voluntary and striated?",["Smooth muscle","Cardiac muscle","Skeletal muscle","None"],2),
+       mcq("Skeletal muscle contraction is explained by the:",["Lock and key model","Sliding filament theory","Fluid mosaic model","Chemiosmotic theory"],1),
+       mcq("Cardiac muscle is found in the:",["Skeleton","Heart","Digestive tract only","Skin"],1)]),
+    tp('bc9t3','Joints & Arthritis',
+      ["Joints are classified as fibrous, cartilaginous, or synovial based on movement allowed.",
+       "Arthritis is inflammation of joints causing pain and stiffness."],
+      [mcq("Joints that allow free movement (like the knee) are classified as:",["Fibrous","Cartilaginous","Synovial","Immovable"],2),
+       mcq("Arthritis refers to:",["Muscle contraction","Inflammation of joints","Bone formation","Nerve damage"],1)]),
+  ]),
+  ch('bc10','Inheritance',[
+    tp('bc10t1',"Mendel's Laws of Inheritance",
+      ["Mendel's laws include the Law of Segregation and Law of Independent Assortment, describing how alleles are inherited."],
+      [mcq("Mendel's Law of Independent Assortment applies to genes located:",["On the same chromosome close together","On different chromosomes","Only on the X chromosome","In mitochondria"],1)]),
+    tp('bc10t2','Gene Linkage and Crossing Over',
+      ["Gene linkage occurs when genes on the same chromosome tend to be inherited together; crossing over during meiosis creates new combinations."],
+      [mcq("Crossing over occurs during:",["Mitosis","Meiosis","Fertilization","Cell death"],1),
+       mcq("Gene linkage refers to genes that are:",["On different chromosomes","Inherited together because they are close on the same chromosome","Always dominant","Found only in females"],1)]),
+    tp('bc10t3','X-linked Recessive Inheritance',
+      ["Sex-linked traits are carried on the X or Y chromosome; X-linked recessive traits (like hemophilia) appear more often in males."],
+      [mcq("Hemophilia is an example of:",["Autosomal dominant inheritance","X-linked recessive inheritance","Y-linked inheritance","Cytoplasmic inheritance"],1),
+       mcq("X-linked recessive disorders are more commonly expressed in:",["Females","Males","Equally in both sexes","Neither sex"],1)]),
+  ]),
+  ch('bc11','Circulation',[
+    tp('bc11t1','Human Heart & Cardiac Cycle',
+      ["The human heart has four chambers and pumps blood through the cardiac cycle (systole and diastole phases)."],
+      [mcq("The heart's pumping phase is called:",["Diastole","Systole","Osmosis","Filtration"],1)]),
+    tp('bc11t2','Blood Vessels & Lymphatic System',
+      ["Arteries carry blood away from the heart under high pressure; veins carry blood back with valves to prevent backflow; capillaries allow exchange of substances.",
+       "The lymphatic system consists of lymph nodes, vessels, and organs, and helps in fluid balance and immunity."],
+      [mcq("Which blood vessel carries blood away from the heart?",["Vein","Artery","Capillary","Lymph vessel"],1),
+       mcq("Valves that prevent backflow of blood are mainly found in:",["Arteries","Veins","Capillaries","Lymph nodes"],1),
+       mcq("Exchange of gases and nutrients occurs across the walls of:",["Arteries","Veins","Capillaries","The heart chambers"],2),
+       mcq("The lymphatic system helps in:",["Digestion only","Fluid balance and immunity","Respiration only","Excretion of urine"],1)]),
+  ]),
+  ch('bc12','Immunity',[
+    tp('bc12t1','Specific Defense Mechanism',
+      ["Specific defense mechanisms target particular pathogens using antibodies and memory cells.",
+       "The immune system distinguishes self from non-self and mounts a targeted response against antigens.",
+       "Specific immunity includes humoral (antibody-mediated) and cell-mediated responses."],
+      [mcq("Specific immune responses target:",["All pathogens equally","A particular antigen","Only bacteria","Only viruses"],1),
+       mcq("Antibody-mediated immunity is also called:",["Cell-mediated immunity","Humoral immunity","Innate immunity","Passive immunity only"],1),
+       mcq("Memory cells function to:",["Destroy the body's own cells","Provide faster response upon re-exposure to an antigen","Produce hormones","Digest food"],1),
+       mcq("Which of the following best describes an antigen?",["A type of blood cell","A substance that triggers an immune response","A digestive enzyme","A muscle protein"],1)]),
+  ]),
+  ch('bc13','Respiration (Human Respiratory System)',[
+    tp('bc13t1','Human Respiratory System & Gas Exchange',
+      ["The human respiratory system includes the nose, trachea, bronchi, and lungs (alveoli), functioning in gas exchange.",
+       "Gas exchange occurs at the alveoli, where oxygen diffuses into blood and carbon dioxide diffuses out."],
+      [mcq("Gas exchange in the lungs occurs at the:",["Trachea","Bronchi","Alveoli","Larynx"],2),
+       mcq("Oxygen from inhaled air diffuses into the:",["Alveolar air","Blood in capillaries","Muscle tissue directly","Stomach"],1),
+       mcq("Which structure connects the throat to the lungs?",["Esophagus","Trachea","Aorta","Ureter"],1)]),
+    tp('bc13t2','Effect of Smoking on the Respiratory System',
+      ["Smoking damages the respiratory system, reducing lung capacity and increasing risk of diseases like bronchitis and lung cancer."],
+      [mcq("Smoking primarily damages the:",["Digestive system","Respiratory system","Skeletal system","Reproductive system only"],1)]),
+  ]),
+  ch('bc14','Digestion',[
+    tp('bc14t1','Human Digestive System',
+      ["The human digestive system includes the mouth, esophagus, stomach, small intestine, and large intestine, along with associated glands (liver, pancreas).",
+       "Digestion breaks down food into absorbable units: carbohydrates to sugars, proteins to amino acids, fats to fatty acids and glycerol.",
+       "The liver produces bile (fat digestion) and the pancreas secretes digestive enzymes."],
+      [mcq("Bile, which helps digest fats, is produced by the:",["Pancreas","Liver","Stomach","Small intestine"],1),
+       mcq("Proteins are broken down into:",["Fatty acids","Amino acids","Glucose","Glycerol"],1),
+       mcq("Most nutrient absorption occurs in the:",["Stomach","Esophagus","Small intestine","Large intestine"],2),
+       mcq("The pancreas contributes to digestion by secreting:",["Bile","Digestive enzymes","Mucus only","Hydrochloric acid only"],1)]),
+  ]),
+  ch('bc15','Homeostasis',[
+    tp('bc15t1','Kidney & Glomerular Filtration',
+      ["The kidney regulates water and ion balance through glomerular filtration, selective reabsorption, and tubular secretion.",
+       "Kidneys perform both excretion (removing waste like urea) and osmoregulation (maintaining water balance).",
+       "Glomerular capillaries filter blood; peritubular capillaries reabsorb useful substances back into blood.",
+       "Kidney stones form from mineral crystallization; kidney failure can result from disease, blockage, or damage."],
+      [mcq("The process of filtering blood in the kidney occurs at the:",["Loop of Henle","Glomerulus","Bladder","Ureter"],1),
+       mcq("Selective reabsorption occurs mainly in the:",["Glomerulus","Renal tubule","Ureter","Bladder"],1),
+       mcq("The kidneys are responsible for both excretion and:",["Digestion","Osmoregulation","Respiration","Circulation"],1)]),
+    tp('bc15t2','Thermoregulation & Excretion',
+      ["Thermoregulation maintains stable body temperature; excretion removes nitrogenous waste (urea, uric acid, ammonia)."],
+      [mcq("The main nitrogenous waste excreted by humans is:",["Glucose","Urea","Oxygen","Bile"],1),
+       mcq("Thermoregulation refers to the body's ability to:",["Digest food","Maintain stable internal temperature","Produce urine","Clot blood"],1)]),
+  ]),
+  ch('bc16','Biotechnology',[
+    tp('bc16t1','Biotechnology and Health Care',
+      ["Biotechnology contributes to healthcare through vaccine production, disease diagnosis, and treatment products.",
+       "DNA/RNA probes and monoclonal antibodies are used for accurate disease diagnosis.",
+       "Biotechnologists produce therapeutic products such as insulin and antibiotics using genetically engineered organisms."],
+      [mcq("Monoclonal antibodies are primarily used for:",["Energy production","Disease diagnosis","Photosynthesis","Digestion"],1),
+       mcq("Vaccines produced through biotechnology help the body:",["Develop immunity against disease","Digest food better","Regulate temperature","Produce more blood cells"],0),
+       mcq("DNA probes are used to:",["Diagnose genetic and infectious diseases","Produce energy","Digest fats","Regulate heartbeat"],0),
+       mcq("A well-known biotechnology product used to treat diabetes is:",["Insulin","Bile","Pepsin","Hemoglobin"],0)]),
+  ]),
+]},
+{id:'chem', name:'Chemistry', emoji:'🧪', color:'var(--purple)', bg:'var(--purple-bg)', weight:25, chapters:[
+  ch('cc1','Fundamentals of Chemistry',[
+    tp('cc1t1',"Moles and Avogadro's Number",
+      ["The mole relates the mass of a substance to the number of particles (Avogadro's number = 6.022×10²³).",
+       "Stoichiometry uses mole ratios from balanced equations to calculate amounts of reactants and products."],
+      [mcq("Avogadro's number is approximately:",["6.022×10²²","6.022×10²³","3.14×10²³","1.602×10⁻¹⁹"],1),
+       mcq("One mole of any gas at STP occupies approximately:",["11.2 L","22.4 L","1 L","44.8 L"],1)]),
+    tp('cc1t2','Limiting Reactant & Percentage Yield',
+      ["The limiting reactant is completely consumed first and determines the maximum amount of product formed.",
+       "Percentage yield compares actual yield to theoretical yield: %Yield = (actual/theoretical) × 100."],
+      [mcq("The reactant that is completely used up first in a reaction is called the:",["Excess reactant","Limiting reactant","Catalyst","Product"],1),
+       mcq("Percentage yield is calculated as:",["Theoretical/actual ×100","Actual/theoretical ×100","Actual − theoretical","Theoretical + actual"],1)]),
+  ]),
+  ch('cc2','Atomic Structure',[
+    tp('cc2t1',"Discovery of Proton & Planck's Quantum Theory",
+      ["Protons were discovered through positive ray experiments; a photon is a discrete unit of radiation energy (Planck's quantum theory)."],
+      [mcq("A photon is best described as:",["A unit of mass","A unit of radiation energy","A subatomic particle with charge","A type of orbital"],1)]),
+    tp('cc2t2','Quantum Numbers & Shapes of Orbitals',
+      ["Electrons occupy orbitals described by quantum numbers (principal, azimuthal, magnetic, spin).",
+       "s, p, and d orbitals have characteristic shapes (spherical, dumbbell, cloverleaf respectively)."],
+      [mcq("The shape of an s orbital is:",["Dumbbell","Spherical","Cloverleaf","Cubic"],1)]),
+    tp('cc2t3','Electronic Configuration',
+      ["Electronic configuration follows the Aufbau principle, Pauli Exclusion Principle, and Hund's Rule."],
+      [mcq("The Aufbau principle states that electrons fill orbitals:",["Randomly","From lowest to highest energy","From highest to lowest energy","In pairs only"],1),
+       mcq("Hund's Rule states that electrons:",["Pair up immediately in one orbital","Occupy degenerate orbitals singly before pairing","Never occupy p orbitals","Fill orbitals randomly"],1)]),
+  ]),
+  ch('cc3','Gases',[
+    tp('cc3t1','Kinetic Molecular Theory & STP',
+      ["Kinetic Molecular Theory explains gas behavior in terms of particles in constant random motion with negligible volume and no intermolecular forces (ideal gas assumption)."],
+      []),
+    tp('cc3t2',"Boyle's Law, Charles's Law & Absolute Zero",
+      ["Boyle's Law: pressure and volume are inversely proportional at constant temperature. Charles's Law: volume and temperature are directly proportional at constant pressure.",
+       "Absolute zero (-273°C) is the theoretical temperature at which molecular motion stops."],
+      [mcq("Boyle's Law relates pressure and volume at constant:",["Volume","Temperature","Moles only","Density"],1),
+       mcq("Absolute zero is equal to:",["0°C","-273°C","100°C","273°C"],1)]),
+    tp('cc3t3','Ideal Gas Equation & Real Gases',
+      ["Ideal Gas Equation: PV = nRT, combining Boyle's, Charles's, and Avogadro's laws.",
+       "Real gases deviate from ideal behavior at high pressure and low temperature."],
+      [mcq("The ideal gas equation is written as:",["PV = nRT","PT = nRV","P = VT/n","V = PRT/n"],0),
+       mcq("Real gases deviate most from ideal behavior at:",["Low pressure, high temperature","High pressure, low temperature","Standard conditions only","They never deviate"],1)]),
+  ]),
+  ch('cc4','Liquids',[
+    tp('cc4t1','Properties of Liquids, Evaporation & Boiling Point',
+      ["Liquids show diffusion, compression (limited), and defined volume but no fixed shape, explained by kinetic molecular theory.",
+       "Evaporation and boiling point relate to vapor pressure; higher intermolecular forces raise boiling point."],
+      [mcq("A liquid boils when its vapor pressure equals:",["Zero","Atmospheric pressure","Twice atmospheric pressure","Critical pressure only"],1),
+       mcq("Stronger intermolecular forces generally result in:",["Lower boiling point","Higher boiling point","No effect on boiling point","Instant evaporation"],1)]),
+    tp('cc4t2','Hydrogen Bonding & Anomalous Behavior of Water',
+      ["Hydrogen bonding occurs in molecules like H₂O, NH₃, and HF due to highly electronegative atoms bonded to hydrogen.",
+       "Water shows anomalous behavior — its density is maximum at 4°C, unlike most substances that are densest as solids."],
+      [mcq("Hydrogen bonding is significant in which molecule?",["CH₄","H₂O","CO₂","N₂"],1),
+       mcq("Water's density is at its maximum at:",["0°C","4°C","100°C","-4°C"],1)]),
+  ]),
+  ch('cc5','Solids',[
+    tp('cc5t1','Crystalline Solids & Lattice Energy',
+      ["Crystalline solids have a regular, repeating internal arrangement of particles (crystal lattice).",
+       "Lattice energy is the energy released when gaseous ions combine to form a solid ionic lattice."],
+      [mcq("A crystalline solid has:",["Random particle arrangement","A regular repeating lattice structure","No definite structure","Only covalent bonds"],1),
+       mcq("Lattice energy is released when:",["A solid melts","Gaseous ions combine to form a solid lattice","A liquid evaporates","A gas expands"],1)]),
+    tp('cc5t2','Ionic vs Molecular Crystals',
+      ["Ionic crystal shape depends on ion size, charge, and packing arrangement.",
+       "Ionic crystals form from electrostatic attraction between ions; molecular crystals are held by weaker intermolecular forces."],
+      [mcq("Ionic crystals are held together mainly by:",["Van der Waals forces","Electrostatic attraction","Hydrogen bonding only","Metallic bonding"],1)]),
+  ]),
+  ch('cc6','Chemical Equilibrium',[
+    tp('cc6t1',"Chemical Equilibrium & Le Chatelier's Principle",
+      ["Chemical equilibrium occurs in reversible reactions when forward and reverse reaction rates are equal.",
+       "Le Chatelier's Principle predicts that a system at equilibrium shifts to counteract changes in concentration, pressure, or temperature."],
+      [mcq("At chemical equilibrium:",["The reaction stops completely","Forward and reverse rates are equal","Only forward reaction occurs","Products no longer form"],1),
+       mcq("Le Chatelier's Principle predicts how equilibrium shifts in response to:",["Color changes","Changes in concentration, pressure or temperature","Changes in gravity","Changes in mass only"],1)]),
+    tp('cc6t2','Solubility Product & Common Ion Effect',
+      ["Solubility product (Ksp) describes the equilibrium of a sparingly soluble salt in solution.",
+       "The common ion effect reduces solubility of a salt when a common ion is added."],
+      [mcq("The common ion effect typically causes solubility to:",["Increase","Decrease","Remain unchanged","Become infinite"],1)]),
+    tp('cc6t3',"Buffer Solutions & Haber's Process",
+      ["Buffer solutions resist changes in pH and consist of a weak acid/base with its conjugate.",
+       "The Haber process synthesizes ammonia from nitrogen and hydrogen using equilibrium principles."],
+      [mcq("A buffer solution resists changes in:",["Volume","pH","Temperature","Color"],1),
+       mcq("The Haber process is used to industrially produce:",["Sulfuric acid","Ammonia","Sodium chloride","Oxygen gas"],1)]),
+  ]),
+  ch('cc7','Reaction Kinetics',[
+    tp('cc7t1','Rate of Reaction & Factors Affecting It',
+      ["Chemical kinetics studies the rate of reaction and factors affecting it (concentration, temperature, catalyst, surface area).",
+       "The rate law expresses rate in terms of reactant concentrations and their order."],
+      [mcq("Chemical kinetics is the study of:",["Reaction rates","Reaction products only","Molecular shapes","Atomic structure"],0),
+       mcq("Increasing temperature generally:",["Decreases reaction rate","Increases reaction rate","Has no effect","Stops the reaction"],1)]),
+    tp('cc7t2','Activation Energy & Rate Constant',
+      ["Activation energy is the minimum energy needed for a reaction to occur; the activated complex is a temporary high-energy state.",
+       "The rate constant reflects how reaction rate depends on concentration under given conditions."],
+      [mcq("The minimum energy required for a reaction to occur is called:",["Bond energy","Activation energy","Lattice energy","Ionization energy"],1),
+       mcq("A catalyst speeds up a reaction by:",["Increasing activation energy","Lowering activation energy","Increasing temperature","Removing reactants"],1)]),
+  ]),
+  ch('cc8','Thermochemistry and Energetics of Chemical Reaction',[
+    tp('cc8t1','Exothermic/Endothermic Reactions & First Law',
+      ["Thermodynamics studies energy changes in physical and chemical processes.",
+       "Exothermic reactions release heat; endothermic reactions absorb heat.",
+       "The First Law of Thermodynamics states energy is conserved (can't be created or destroyed)."],
+      [mcq("A reaction that releases heat to the surroundings is called:",["Endothermic","Exothermic","Isothermal","Adiabatic"],1),
+       mcq("The First Law of Thermodynamics is based on the principle of:",["Conservation of mass only","Conservation of energy","Increasing entropy","Constant pressure"],1)]),
+    tp('cc8t2',"Hess's Law & Enthalpy",
+      ["Hess's Law states total enthalpy change is independent of the pathway taken."],
+      [mcq("Hess's Law states that enthalpy change:",["Depends on the pathway","Is independent of the pathway","Is always zero","Only applies to gases"],1),
+       mcq("Enthalpy of a reaction refers to:",["Heat content change at constant pressure","Mass change","Volume change only","Color change"],0)]),
+  ]),
+  ch('cc9','Electrochemistry',[
+    tp('cc9t1','Redox Reactions',
+      ["Redox reactions involve simultaneous oxidation (loss of electrons) and reduction (gain of electrons).",
+       "Oxidation number changes help identify which species are oxidized or reduced."],
+      [mcq("Oxidation involves the:",["Gain of electrons","Loss of electrons","Gain of protons","Loss of protons"],1),
+       mcq("In a redox reaction, the species that loses electrons is:",["Reduced","Oxidized","Neutralized","Ionized only"],1)]),
+    tp('cc9t2','Electrodes & Standard Hydrogen Electrode',
+      ["The anode is where oxidation occurs; the cathode is where reduction occurs.",
+       "The Standard Hydrogen Electrode (SHE) is the reference electrode (0V) for measuring standard electrode potentials."],
+      [mcq("Reduction occurs at the:",["Anode","Cathode","Salt bridge","Electrolyte only"],1),
+       mcq("The standard hydrogen electrode has a potential of:",["+1V","0V","-1V","+2V"],1)]),
+  ]),
+  ch('cc10','Chemical Bonding',[
+    tp('cc10t1','VSEPR Theory & Hybridization',
+      ["VSEPR theory predicts molecular shapes based on electron pair repulsion around a central atom.",
+       "Hybridization (sp, sp², sp³) explains the geometry of molecules."],
+      [mcq("VSEPR theory is used to predict:",["Reaction rates","Molecular shapes","Boiling points only","Atomic mass"],1),
+       mcq("sp³ hybridization results in a molecular geometry that is typically:",["Linear","Tetrahedral","Square planar","Octahedral"],1)]),
+    tp('cc10t2','Sigma and Pi Bonds',
+      ["Sigma bonds form by head-on orbital overlap; pi bonds form by sideways overlap of parallel orbitals."],
+      [mcq("A pi bond is formed by:",["Head-on orbital overlap","Sideways overlap of parallel orbitals","Ionic attraction","Hydrogen bonding"],1)]),
+    tp('cc10t3','Molecular Polarity & Bond Energy',
+      ["Molecular polarity depends on molecular shape and bond dipoles; polar molecules have uneven charge distribution.",
+       "Bond energy measures the strength of a chemical bond; higher bond energy means a stronger bond."],
+      [mcq("A molecule is polar when it has:",["Symmetric charge distribution","Uneven charge distribution","No bonds","Only nonpolar bonds"],1),
+       mcq("Higher bond energy indicates:",["A weaker bond","A stronger bond","No bond","An ionic bond only"],1)]),
+  ]),
+  ch('cc11','S- and P-Block Elements',[
+    tp('cc11t1','Periodic Trends',
+      ["Periodic trends include atomic radius, ionization energy, electron affinity, and electronegativity, which vary systematically across periods and groups.",
+       "The periodic table is divided into s-block, p-block, d-block, and f-block based on the subshell being filled."],
+      [mcq("Ionization energy generally increases across a period because:",["Atomic size increases","Nuclear charge increases","Electrons are added to a new shell","Atoms become more metallic"],1)]),
+    tp('cc11t2','Group I & Group II Reactivity',
+      ["Group I (alkali metals) react vigorously with water, oxygen, and chlorine to form hydroxides, oxides, and chlorides respectively.",
+       "Group II (alkaline earth metals) show similar but less vigorous reactivity than Group I."],
+      [mcq("Alkali metals belong to which block of the periodic table?",["s-block","p-block","d-block","f-block"],0),
+       mcq("Reactivity of alkali metals with water is generally:",["Very low","Vigorous","Non-existent","Only with steam"],1),
+       mcq("Group II elements react with water:",["More vigorously than Group I","Less vigorously than Group I","Not at all","Only under extreme heat"],1)]),
+  ]),
+  ch('cc12','Transition Elements',[
+    tp('cc12t1','Electronic Structure of d-Block Elements',
+      ["Transition (d-block) elements have partially filled d-orbitals in their atoms or common ions.",
+       "Their electronic structure gives rise to variable oxidation states, colored compounds, and catalytic properties."],
+      [mcq("Transition elements are characterized by partially filled:",["s-orbitals","p-orbitals","d-orbitals","f-orbitals"],2),
+       mcq("A common property of transition metal compounds is that they are often:",["Colorless","Colored","Non-reactive","Gaseous only"],1),
+       mcq("Transition metals commonly show:",["Only one oxidation state","Variable oxidation states","No oxidation states","Negative charge only"],1)]),
+  ]),
+  ch('cc13','Fundamental Principles of Organic Chemistry',[
+    tp('cc13t1','Classification of Organic Compounds & Functional Groups',
+      ["Organic chemistry is the study of carbon-containing compounds; organic compounds are classified as aliphatic, aromatic, or alicyclic based on structure.",
+       "A functional group is a specific group of atoms responsible for the characteristic reactions of a compound."],
+      [mcq("Organic chemistry primarily studies compounds containing:",["Nitrogen","Carbon","Oxygen only","Sulfur only"],1),
+       mcq("A functional group determines a compound's:",["Molecular weight only","Characteristic chemical reactions","Color only","Physical state only"],1)]),
+    tp('cc13t2','Isomerism',
+      ["Isomerism occurs when compounds share the same molecular formula but differ in structure; stereoisomerism involves different spatial arrangements."],
+      [mcq("Compounds with the same molecular formula but different structures are called:",["Allotropes","Isomers","Isotopes","Homologs only"],1)]),
+  ]),
+  ch('cc14','Chemistry of Hydrocarbons',[
+    tp('cc14t1','Alkanes',
+      ["Alkanes (general formula CnH2n+2) contain only single bonds and undergo substitution reactions via free radical mechanisms."],
+      [mcq("Alkanes primarily undergo which type of reaction?",["Addition","Substitution","Elimination only","Condensation"],1),
+       mcq("The general formula for alkanes is:",["CnH2n","CnH2n+2","CnH2n-2","CnHn"],1)]),
+    tp('cc14t2','Alkenes',
+      ["Alkenes contain a double bond (functional group) and undergo addition reactions; their shape is explained by sigma and pi bonds."],
+      [mcq("The functional group of alkenes is a:",["Single bond","Double bond","Triple bond","Aromatic ring"],1)]),
+    tp('cc14t3','Benzene & Aromatic Chemistry',
+      ["Benzene is an aromatic hydrocarbon with a resonance-stabilized structure, undergoing electrophilic substitution (nitration, sulphonation, halogenation, Friedel-Crafts reactions) rather than addition."],
+      [mcq("Benzene typically undergoes:",["Addition reactions","Electrophilic substitution reactions","Free radical addition","No reactions"],1)]),
+    tp('cc14t4','Alkynes',
+      ["Alkynes contain a triple bond and show acidic character at the terminal position; they undergo hydrogenation, hydrohalogenation, and hydration."],
+      [mcq("Alkynes contain which type of bond between carbon atoms?",["Single","Double","Triple","Aromatic"],2)]),
+  ]),
+  ch('cc15','Alkyl Halides',[
+    tp('cc15t1','Nomenclature & Reactivity',
+      ["Alkyl halides (RX) are named using IUPAC nomenclature and their reactivity depends on the carbon skeleton and halogen present."],
+      [mcq("Alkyl halides are represented generally as:",["ROH","RX","RCOOH","RCHO"],1)]),
+    tp('cc15t2','Substitution vs Elimination',
+      ["They undergo nucleophilic substitution (SN1/SN2) and elimination reactions, often competing depending on conditions."],
+      [mcq("Nucleophilic substitution reactions in alkyl halides involve replacement of the halogen by a:",["Nucleophile","Electrophile","Free radical only","Proton"],0),
+       mcq("SN1 and SN2 are types of:",["Addition reactions","Nucleophilic substitution mechanisms","Elimination only","Oxidation reactions"],1)]),
+  ]),
+  ch('cc16','Alcohols and Phenols',[
+    tp('cc16t1','Alcohols',
+      ["Alcohols (R-OH) can be prepared and converted into ethers and esters; their reactivity depends on the carbon chain and OH position."],
+      [mcq("Alcohols can be converted into esters by reacting with:",["Carboxylic acids","Alkanes","Water only","Halogens only"],0)]),
+    tp('cc16t2','Phenols',
+      ["Phenols have an OH group attached directly to an aromatic ring, giving them different (often more acidic) reactivity than alcohols.",
+       "Phenols undergo electrophilic aromatic substitution due to the activating effect of the OH group on the ring."],
+      [mcq("Phenols differ from alcohols because the OH group is attached to:",["A saturated carbon chain","An aromatic ring","A nitrogen atom","A carbonyl group"],1),
+       mcq("Phenols are generally:",["Less acidic than alcohols","More acidic than alcohols","Basic","Neutral only"],1)]),
+  ]),
+  ch('cc17','Aldehydes and Ketones',[
+    tp('cc17t1','Structure & Preparation',
+      ["Aldehydes and ketones both contain the carbonyl group (C=O); aldehydes have it at the end of the chain, ketones within the chain."],
+      [mcq("The functional group common to aldehydes and ketones is:",["Hydroxyl","Carbonyl","Carboxyl","Amino"],1)]),
+    tp('cc17t2','Reactions of Aldehydes and Ketones',
+      ["They undergo nucleophilic addition reactions, and can be reduced to alcohols or oxidized (aldehydes more easily oxidized than ketones)."],
+      [mcq("Aldehydes are generally:",["Harder to oxidize than ketones","Easier to oxidize than ketones","Never oxidized","Only reduced"],1),
+       mcq("Reduction of an aldehyde typically produces a(n):",["Alcohol","Carboxylic acid","Alkene","Ether"],0)]),
+  ]),
+  ch('cc18','Carboxylic Acids',[
+    tp('cc18t1','Structure & Preparation',
+      ["Carboxylic acids contain the -COOH functional group and are prepared by oxidation of primary alcohols or aldehydes."],
+      [mcq("The functional group of carboxylic acids is:",["-OH","-COOH","-CHO","-NH2"],1)]),
+    tp('cc18t2','Derivatives & Reactions',
+      ["They react to form derivatives: acyl halides, anhydrides, and esters, through various conversion reactions."],
+      [mcq("Carboxylic acids can be converted into esters by reacting with:",["Alcohols","Alkanes","Water only","Hydrogen gas"],0),
+       mcq("Acyl halides are derivatives of:",["Alcohols","Carboxylic acids","Alkenes","Aldehydes only"],1)]),
+  ]),
+  ch('cc19','Macromolecules',[
+    tp('cc19t1','Proteins',
+      ["Proteins are classified based on structure and function; they play vital roles in body functions and nutrition."],
+      [mcq("Proteins play an important role in:",["Only energy storage","Body structure, function and nutrition","Photosynthesis only","None of these"],1)]),
+    tp('cc19t2','Enzymes as Biocatalyst',
+      ["Enzymes are specialized proteins that act as biocatalysts, speeding up biochemical reactions."],
+      [mcq("Enzymes act primarily as:",["Structural proteins","Biocatalysts","Energy sources only","Genetic material"],1)]),
+  ]),
+  ch('cc20','Industrial Chemistry',[
+    tp('cc20t1','Adhesives & Dyes',
+      ["Adhesives bond materials together and are classified by type and application.",
+       "Dyes are colored substances used to impart color to fabrics and materials; they are classified by chemical structure and use."],
+      [mcq("Dyes are primarily used to:",["Strengthen materials","Impart color to materials","Increase reaction rate","Neutralize acids"],1)]),
+    tp('cc20t2','Polymers',
+      ["Polymers are large molecules formed by repeating units; they are classified as addition polymers or condensation polymers."],
+      [mcq("Polymers formed by simple repeated addition of monomers are called:",["Condensation polymers","Addition polymers","Natural polymers only","Ionic polymers"],1),
+       mcq("Condensation polymers form with the release of a small molecule such as:",["Oxygen","Water","Nitrogen","Hydrogen only"],1)]),
+  ]),
+]},
+{id:'phy', name:'Physics', emoji:'⚛️', color:'var(--blue)', bg:'var(--blue-bg)', weight:20, chapters:[
+  ch('pc1','Vectors and Equilibrium',[
+    tp('pc1t1','Addition of Vectors (Rectangular Components)',
+      ["Vectors have magnitude and direction; they can be added using the rectangular (perpendicular) components method."],
+      [mcq("Vector addition using rectangular components involves resolving vectors into:",["Diagonal parts","Perpendicular (x and y) components","Random parts","Equal magnitudes only"],1)]),
+    tp('pc1t2','Scalar and Vector Products',
+      ["The scalar (dot) product of two vectors gives a scalar value related to the cosine of the angle between them.",
+       "The vector (cross) product gives a vector perpendicular to both, related to the sine of the angle between them."],
+      [mcq("The scalar product of two vectors depends on the:",["Sine of the angle between them","Cosine of the angle between them","Tangent of the angle","Their magnitudes only"],1),
+       mcq("The vector product of two parallel vectors is:",["Maximum","Zero","Negative","Undefined"],1)]),
+  ]),
+  ch('pc2','Force and Motion',[
+    tp('pc2t1','Displacement, Velocity & Acceleration',
+      ["Displacement is the change in position; velocity is the rate of change of displacement."],
+      []),
+    tp('pc2t2','Projectile Motion',
+      ["Projectile motion is two-dimensional motion where horizontal velocity remains constant and vertical motion accelerates due to gravity."],
+      [mcq("In projectile motion (ignoring air resistance), horizontal velocity remains:",["Zero","Constant","Increasing","Decreasing"],1)]),
+    tp('pc2t3',"Newton's Laws of Motion",
+      ["Newton's First Law (inertia): an object remains at rest or in uniform motion unless acted on by an unbalanced force.",
+       "Newton's Second Law: F = ma, force equals the rate of change of momentum."],
+      [mcq("Newton's Second Law is mathematically expressed as:",["F = ma","F = mv","F = m/a","F = a/m"],0),
+       mcq("Newton's Third Law relates to the conservation of:",["Energy","Momentum","Mass","Charge"],1),
+       mcq("An object continues in uniform motion unless acted upon by an external force — this is:",["Newton's Second Law","Newton's First Law","Newton's Third Law","Law of gravitation"],1)]),
+    tp('pc2t4','Momentum & Collisions',
+      ["Newton's Third Law: every action has an equal and opposite reaction, related to conservation of momentum.",
+       "In elastic collisions, both momentum and kinetic energy are conserved; in inelastic collisions, only momentum is conserved."],
+      [mcq("In a perfectly elastic collision, which quantities are conserved?",["Momentum only","Kinetic energy only","Both momentum and kinetic energy","Neither"],2)]),
+  ]),
+  ch('pc3','Work and Energy',[
+    tp('pc3t1','Work & Kinetic Energy',
+      ["Work is done when a force causes displacement in the direction of the force (W = Fd cosθ).",
+       "Kinetic energy is energy due to motion; potential energy is energy due to position, with gravitational PE measured from a reference level."],
+      [mcq("Work done is maximum when the force and displacement are:",["Perpendicular","In the same direction","Opposite","At 90°"],1),
+       mcq("Kinetic energy of an object depends on its:",["Position only","Mass and velocity","Charge","Temperature only"],1)]),
+    tp('pc3t2','Potential Energy & Power',
+      ["Power is the rate of doing work, expressed as the scalar product of force and velocity."],
+      [mcq("Power is defined as the rate of:",["Doing work","Change in mass","Change in position only","Change in charge"],0)]),
+    tp('pc3t3','Energy Losses & Efficiency',
+      ["Energy lost to friction is dissipated as heat, reducing overall efficiency of practical devices."],
+      [mcq("Energy lost to friction is typically converted into:",["Light","Heat","Sound only","Nothing, it disappears"],1)]),
+  ]),
+  ch('pc4','Rotational and Circular Motion',[
+    tp('pc4t1','Angular Displacement & Angular Velocity',
+      ["Angular displacement is measured in radians and relates to linear displacement by arc length = radius × angle.",
+       "Angular velocity is the rate of change of angular displacement."],
+      [mcq("Angular displacement is typically measured in:",["Meters","Radians","Newtons","Joules"],1),
+       mcq("Angular velocity is the rate of change of:",["Linear displacement","Angular displacement","Mass","Force"],1)]),
+    tp('pc4t2','Relation Between Linear and Angular Quantities',
+      ["Linear and angular quantities (displacement, velocity, acceleration) are related through the radius of the circular path."],
+      [mcq("Linear velocity relates to angular velocity through the:",["Mass of the object","Radius of the circular path","Force applied","Time period only"],1)]),
+  ]),
+  ch('pc5','Fluid Dynamics',[
+    tp('pc5t1','Terminal Velocity & Fluid Drag',
+      ["Terminal velocity occurs when the fluid drag force balances the weight of a falling object, resulting in constant velocity."],
+      [mcq("Terminal velocity is reached when:",["Drag force exceeds weight","Drag force equals weight","There is no drag force","The object accelerates infinitely"],1)]),
+    tp('pc5t2','Equation of Continuity & Bernoulli\u2019s Equation',
+      ["Fluid flow can be laminar (streamline, smooth) or turbulent (chaotic) depending on velocity.",
+       "The equation of continuity (Av = constant) reflects conservation of mass in fluid flow.",
+       "Bernoulli's equation relates pressure and flow speed; faster flow corresponds to lower pressure, relevant to blood flow physics."],
+      [mcq("The equation of continuity (Av = constant) is based on the principle of conservation of:",["Energy","Mass","Charge","Momentum only"],1),
+       mcq("According to Bernoulli's principle, as fluid speed increases, pressure:",["Increases","Decreases","Stays constant","Becomes zero"],1),
+       mcq("Turbulent flow is characterized by:",["Smooth, orderly layers","Chaotic, irregular motion","Zero velocity","Constant pressure everywhere"],1)]),
+  ]),
+  ch('pc6','Waves',[
+    tp('pc6t1','Wave Motion & Characteristics',
+      ["Wave motion transfers energy without transferring matter, as seen in ropes, springs, and sound.",
+       "Mechanical waves require a medium; electromagnetic waves do not.",
+       "Wave speed relates to frequency and wavelength: v = fλ."],
+      [mcq("Mechanical waves require a:",["Vacuum","Medium","Magnetic field","Nothing at all"],1),
+       mcq("The relationship between wave speed, frequency, and wavelength is:",["v = f/λ","v = fλ","v = λ/f","v = f + λ"],1),
+       mcq("Sound waves are an example of:",["Transverse waves","Longitudinal waves","Electromagnetic waves","Standing waves only"],1)]),
+    tp('pc6t2','Speed of Sound',
+      ["Speed of sound depends on the properties of the medium through which it travels, with corrections such as Laplace's correction to Newton's formula."],
+      []),
+    tp('pc6t3','Stationary Waves & Superposition',
+      ["Stationary (standing) waves form from superposition of two waves traveling in opposite directions, with nodes and antinodes."],
+      [mcq("Stationary waves are formed by the superposition of:",["Two waves of different frequency","Two waves traveling in opposite directions","A single wave only","Light waves only"],1)]),
+    tp('pc6t4','Simple Harmonic Motion',
+      ["Simple Harmonic Motion (SHM) is periodic motion where restoring force is proportional to displacement; it relates to the projection of circular motion."],
+      [mcq("In Simple Harmonic Motion, the restoring force is proportional to:",["Velocity","Displacement","Time","Mass only"],1)]),
+  ]),
+  ch('pc7','Thermodynamics',[
+    tp('pc7t1','Heat & First Law of Thermodynamics',
+      ["Heat flows naturally from a region of higher temperature to lower temperature (thermal equilibrium).",
+       "The First Law of Thermodynamics states the change in internal energy equals heat added minus work done by the system (energy conservation)."],
+      [mcq("Heat naturally flows from:",["Cold to hot","Hot to cold","It doesn't flow","Only in solids"],1),
+       mcq("The First Law of Thermodynamics is an expression of:",["Conservation of mass","Conservation of energy","Conservation of charge","Entropy increase only"],1)]),
+    tp('pc7t2','Molar Specific Heats',
+      ["Molar specific heat differs at constant volume (Cv) and constant pressure (Cp); their relation for an ideal gas is Cp − Cv = R."],
+      [mcq("For an ideal gas, the relation between Cp and Cv is:",["Cp − Cv = R","Cp + Cv = R","Cp = Cv","Cp/Cv = R"],0)]),
+  ]),
+  ch('pc8','Electrostatics',[
+    tp('pc8t1',"Coulomb's Law & Electric Field",
+      ["Coulomb's Law states the force between two point charges is proportional to the product of charges and inversely proportional to the square of distance.",
+       "Electric field is a region where a charge experiences a force; field lines represent its direction and strength."],
+      [mcq("Coulomb's Law describes the force between:",["Two masses","Two point charges","Two magnets only","Two currents"],1),
+       mcq("According to Coulomb's Law, force is inversely proportional to:",["Charge","The square of distance","Time","Mass"],1),
+       mcq("Electric field lines point in the direction of the force on a:",["Negative test charge","Positive test charge","Neutral particle","Magnetic dipole"],1)]),
+    tp('pc8t2','Electric Potential',
+      ["Electric potential at a point is the work done in bringing a unit positive charge from infinity to that point."],
+      [mcq("Electric potential at a point is defined in terms of work done in bringing a unit positive charge from:",["The center of the field","Infinity","The nearest charge","A grounded point only"],1)]),
+    tp('pc8t3','Capacitors',
+      ["Capacitors charge and discharge through a resistance, following an exponential pattern over time."],
+      []),
+  ]),
+  ch('pc9','Current Electricity',[
+    tp('pc9t1',"Ohm's Law & Resistivity",
+      ["Ohm's Law states current is directly proportional to voltage at constant temperature (V = IR).",
+       "Resistivity depends on the material and temperature; most conductors show increased resistivity with temperature."],
+      [mcq("Ohm's Law is expressed as:",["V = IR","V = I/R","V = I + R","V = IR²"],0),
+       mcq("For most conductors, resistivity increases with:",["Decreasing temperature","Increasing temperature","Decreasing current","Increasing voltage only"],1)]),
+    tp('pc9t2','Internal Resistance & Maximum Power Transfer',
+      ["Internal resistance of a source affects the terminal voltage delivered to an external circuit.",
+       "Maximum power transfer occurs when external resistance equals internal resistance."],
+      [mcq("Maximum power transfer occurs when external resistance is:",["Much greater than internal resistance","Much less than internal resistance","Equal to internal resistance","Zero"],2)]),
+  ]),
+  ch('pc10','Electromagnetism',[
+    tp('pc10t1','Magnetic Flux Density & Magnetic Flux',
+      ["Magnetic flux density (B) describes the strength of a magnetic field; magnetic flux (Φ) is the scalar product of B and area."],
+      [mcq("Magnetic flux is calculated as the scalar product of magnetic field and:",["Current","Area","Resistance","Voltage"],1)]),
+    tp('pc10t2','Motion of Charged Particle in a Magnetic Field',
+      ["A charged particle moving perpendicular to a magnetic field follows a circular path due to the magnetic force acting on it."],
+      [mcq("A charged particle moving perpendicular to a magnetic field follows a:",["Straight line","Circular path","Parabolic path only","Random path"],1)]),
+  ]),
+  ch('pc11','Electromagnetic Induction',[
+    tp('pc11t1',"Faraday's Law & Lenz's Law",
+      ["Faraday's Law states that an induced EMF is proportional to the rate of change of magnetic flux.",
+       "Lenz's Law states the induced current opposes the change that caused it, consistent with conservation of energy."],
+      [mcq("Faraday's Law relates induced EMF to the rate of change of:",["Current","Magnetic flux","Resistance","Voltage only"],1),
+       mcq("Lenz's Law is consistent with the principle of conservation of:",["Mass","Energy","Charge","Momentum"],1)]),
+    tp('pc11t2','Transformers',
+      ["Transformers use electromagnetic induction to step up or step down voltage for efficient electricity transmission."],
+      [mcq("A transformer that increases voltage is called a:",["Step-down transformer","Step-up transformer","Rectifier","Capacitor"],1)]),
+  ]),
+  ch('pc12','Alternating Current',[
+    tp('pc12t1','AC Circuits & Phase',
+      ["Alternating current (AC) periodically reverses direction; phase differences occur between voltage and current in circuits with resistors, capacitors, and inductors."],
+      [mcq("In AC circuits, current periodically:",["Stays constant","Reverses direction","Stops flowing","Becomes direct current"],1)]),
+    tp('pc12t2','Electromagnetic Spectrum',
+      ["The electromagnetic spectrum ranges from radio waves (low energy) to gamma rays (high energy)."],
+      [mcq("The electromagnetic spectrum ranges from:",["X-rays to visible light only","Radio waves to gamma rays","Sound waves to light","Only visible light"],1)]),
+  ]),
+  ch('pc13','Electronics',[
+    tp('pc13t1','Rectification',
+      ["Rectification converts AC to DC using diodes; half-wave rectification uses one diode, full-wave uses multiple diodes or a bridge."],
+      [mcq("Rectification is the process of converting:",["DC to AC","AC to DC","Voltage to current","Current to resistance"],1)]),
+    tp('pc13t2','PN Junction',
+      ["A PN junction diode allows current to flow easily in forward bias and blocks it in reverse bias."],
+      [mcq("A PN junction diode conducts current easily when:",["Reverse biased","Forward biased","Not connected","At zero voltage only"],1)]),
+  ]),
+  ch('pc14','Dawn of Modern Physics',[
+    tp('pc14t1','Quantum Theory and Radiation',
+      ["The particle model of light describes light as consisting of photons, each carrying discrete energy proportional to frequency."],
+      [mcq("According to the particle model, light consists of:",["Waves only","Photons","Electrons","Protons"],1),
+       mcq("The energy of a photon is directly proportional to its:",["Wavelength","Frequency","Mass","Charge"],1)]),
+  ]),
+  ch('pc15','Atomic Spectra',[
+    tp('pc15t1','Atomic Spectra',
+      ["Atomic spectra (line spectra) result from electrons transitioning between energy levels, emitting or absorbing specific wavelengths of light."],
+      [mcq("Line spectra are produced due to electron transitions between:",["Nuclei","Energy levels","Different atoms","Magnetic poles"],1),
+       mcq("Each element produces a spectrum that is:",["Identical to all elements","Unique to that element","Random","Always continuous"],1)]),
+  ]),
+  ch('pc16','Nuclear Physics',[
+    tp('pc16t1','Composition of Atomic Nuclei & Nuclear Decay',
+      ["Atomic nuclei are composed of protons and neutrons; electrons orbit the nucleus.",
+       "Nuclear decay is spontaneous and random in nature, following the law of radioactive decay."],
+      [mcq("The nucleus of an atom contains:",["Electrons and protons","Protons and neutrons","Only neutrons","Only electrons"],1),
+       mcq("Nuclear decay is best described as:",["Predictable for each atom","Spontaneous and random","Controlled by temperature","Reversible"],1)]),
+    tp('pc16t2','Half-life & Medical Uses of Radiation',
+      ["Half-life is the time required for half of a radioactive sample to decay; λ = 0.693/half-life.",
+       "Radiation has both biological effects (harmful in high doses) and medical uses (diagnosis and treatment)."],
+      [mcq("Half-life is defined as the time taken for:",["All radioactive atoms to decay","Half of the radioactive atoms to decay","No atoms to decay","The nucleus to double"],1),
+       mcq("Radiation is used medically for:",["Only harming tissue","Diagnosis and treatment of disease","Cooking food only","Generating electricity only"],1)]),
+  ]),
+]},
+{id:'eng', name:'English', emoji:'📖', color:'var(--red)', bg:'var(--red-bg)', weight:5, chapters:[
+  ch('ec1','Reading and Thinking Skills',[
+    tp('ec1t1','Scanning & Comprehension',
+      ["Scanning is used to quickly locate specific information in a passage to answer short questions.",
+       "Deducing meaning from context involves using surrounding words and sentences to understand unfamiliar vocabulary."],
+      [mcq("Scanning a text is primarily used to:",["Memorize the whole passage","Quickly locate specific information","Analyze grammar","Translate the text"],1),
+       mcq("Deducing meaning from context relies on:",["A dictionary only","Surrounding words and sentences","Random guessing","The title only"],1)]),
+    tp('ec1t2','Figurative Language',
+      ["Analyzing figurative language involves understanding how a writer uses techniques like metaphor, simile, and imagery to appeal to the senses."],
+      [mcq("Figurative language includes techniques such as:",["Metaphor and simile","Punctuation rules","Verb conjugation","Spelling rules"],0)]),
+  ]),
+  ch('ec2','Formal and Lexical Aspect of Language',[
+    tp('ec2t1','Grammar: Tenses & Agreement',
+      ["Correct grammar includes pronoun-antecedent agreement, subject-verb agreement, and consistent tense usage."],
+      [mcq("Choose the sentence with correct subject-verb agreement:",["The list of items are on the table","The list of items is on the table","The list of items were on the table","The list of items be on the table"],1)]),
+    tp('ec2t2','Phrases: Infinitives & Gerunds',
+      ["Infinitives, gerunds, and their phrases function as nouns, adjectives, or adverbs in sentences."],
+      [mcq('"She enjoys swimming" — "swimming" here is functioning as a:',["Verb","Gerund","Adjective","Preposition"],1)]),
+    tp('ec2t3','Prepositions & Active/Passive Voice',
+      ["Prepositions indicate position, time, movement, and direction; correct usage is essential for clear meaning.",
+       "Active voice emphasizes the subject performing the action, while passive voice emphasizes the action's recipient."],
+      [mcq("Passive voice of \u201cThe cat chased the mouse\u201d is:",["The mouse chased the cat","The mouse was chased by the cat","The cat is chasing the mouse","The mouse chases the cat"],1),
+       mcq("Which of the following is a preposition of time?",["Under","During","Beside","Through"],1)]),
+    tp('ec2t4','Direct and Indirect Speech',
+      ["Direct speech reports exact words; indirect (reported) speech rephrases what was said."],
+      [mcq("Choose the sentence in correct direct speech:",["He said that he was tired","He said, \"I am tired.\"","He said he is tired","He told he was tired"],1)]),
+  ]),
+  ch('ec3','Writing Skills',[
+    tp('ec3t1','Sentence Structure & Agreement',
+      ["Common writing errors include faulty sentence structure, subject-verb disagreement, and incorrect word functions or spellings."],
+      [mcq("Identify the sentence with faulty structure:",["Running quickly, the finish line was reached by him","He ran quickly and reached the finish line","He reaching the finish line quickly","Quickly he the finish line reached"],1),
+       mcq("Which of the following shows correct subject-verb agreement?",["Neither of the boys have arrived","Neither of the boys has arrived","Neither of the boys are arriving","Neither of the boys arriving"],1)]),
+    tp('ec3t2','Proofreading & Common Errors',
+      ["Proofreading involves checking a text for errors in usage, style, spelling, and structure."],
+      [mcq("Proofreading primarily focuses on identifying errors in:",["Plot development","Usage, style, and spelling","Character names","Page numbering"],1)]),
+  ]),
+]},
+{id:'lr', name:'Logical Reasoning', emoji:'🧠', color:'var(--amber)', bg:'var(--amber-bg)', weight:5, chapters:[
+  ch('lc1','Critical Thinking',[
+    tp('lc1t1','Critical Thinking',
+      ["Critical thinking uses logic to separate truth from falsehood and reasonable beliefs from unreasonable ones.",
+       "It involves developing logical arguments and identifying flawed reasoning or false beliefs."],
+      [mcq("Critical thinking primarily involves:",["Accepting all statements as true","Using logic to evaluate truth and reasonableness","Memorizing facts","Guessing randomly"],1),
+       mcq("A statement supported by valid logical reasoning is considered:",["Automatically false","A reasonable belief","Irrelevant","Emotional"],1),
+       mcq("Identifying flawed logic in an argument helps to:",["Strengthen false beliefs","Critically evaluate and reject false beliefs","Confuse the reader","Avoid conclusions"],1)]),
+  ]),
+  ch('lc2','Letter and Symbol Series',[
+    tp('lc2t1','Number & Letter Series',
+      ["Number and letter series follow specific rules such as arithmetic progression, geometric progression, or alphabetical order.",
+       "Solving a series requires identifying the pattern connecting consecutive terms."],
+      [mcq("What comes next in the series: 4, 8, 16, 32, ___?",["48","64","40","36"],1),
+       mcq("Find the next letter: B, D, F, H, ___?",["I","J","K","L"],1),
+       mcq("What comes next: 1, 3, 6, 10, ___?",["14","15","13","16"],1),
+       mcq("Find the missing number: 7, 14, 21, 28, ___?",["30","35","32","42"],1)]),
+  ]),
+  ch('lc3','Logical Deductions',[
+    tp('lc3t1','Logical Deductions',
+      ["Logical deduction uses given statements and relationships to draw accurate conclusions.",
+       "It tests the ability to use structured thinking to determine which conclusion logically follows from a passage."],
+      [mcq("If all A are B, and all B are C, then:",["All C are A","All A are C","No A are C","Some C are not A"],1),
+       mcq("Logical deduction primarily requires:",["Emotional judgment","Structured, precise reasoning from given statements","Random guessing","Memorization only"],1)]),
+  ]),
+  ch('lc4','Logical Problems',[
+    tp('lc4t1','Logical Problems',
+      ["Logical problems (puzzles) require deductive reasoning to combine different pieces of information and arrive at a single correct answer."],
+      [mcq("Solving logical puzzles primarily requires:",["Deductive reasoning skills","Memorized formulas","Guessing","Ignoring given information"],0),
+       mcq("If a puzzle gives multiple clues, the correct answer must be:",["Consistent with all clues","Consistent with only one clue","Random","Based on emotion"],0)]),
+  ]),
+  ch('lc5','Course of Action',[
+    tp('lc5t1','Course of Action',
+      ["A course of action question asks the test-taker to judge which suggested step logically follows from a given problem or situation.",
+       "It requires gathering information and using it to make sound, justified decisions."],
+      [mcq('A "course of action" question tests the ability to:',["Predict random outcomes","Judge the best follow-up step based on given information","Recall historical facts","Solve mathematical equations"],1),
+       mcq("To determine a valid course of action, one should:",["Ignore the given statement","Use the information logically to judge suggested actions","Choose the first option always","Avoid making a decision"],1)]),
+  ]),
+  ch('lc6','Cause and Effect',[
+    tp('lc6t1','Cause and Effect',
+      ["Cause-and-effect reasoning explains why events happen by linking one occurrence to another.",
+       "It involves evaluating whether a claimed cause logically and validly explains an event or outcome."],
+      [mcq("Cause-and-effect reasoning is used to:",["Randomly guess outcomes","Explain why one event leads to another","Ignore relationships between events","Memorize dates"],1),
+       mcq("A valid cause-and-effect argument should be supported by:",["Emotional appeal","Logical, valid reasoning","Popular opinion only","No evidence"],1)]),
+  ]),
+]},
+];
+
+function findChapter(subjId, chapId){
+  const s = SUBJECTS.find(x=>x.id===subjId);
+  const c = s.chapters.find(x=>x.id===chapId);
+  return {s,c};
+}
+function findTopic(subjId, chapId, topicId){
+  const {s,c} = findChapter(subjId,chapId);
+  const t = c.topics.find(x=>x.id===topicId);
+  return {s,c,t};
+}
+
+/* =========================================================
+   APP STATE / DB
+========================================================= */
+const DB = {
+  lectures: [
+    {id:1,subj:'bio',chap:'Cell Structure & Function',name:'Cell Structure — Full Lecture.mp4',size:'184 MB',date:'Today'},
+    {id:2,subj:'chem',chap:'Chemistry of Hydrocarbons',name:'Hydrocarbons Basics.mp4',size:'142 MB',date:'Yesterday'},
+    {id:3,subj:'phy',chap:'Force and Motion',name:"Newton's Laws Explained.mp4",size:'98 MB',date:'2 days ago'},
+  ],
+  notesFiles: [
+    {id:1,subj:'bio',chap:'Cell Structure & Function',name:'Cell Biology — Short Notes.pdf',size:'2.1 MB',date:'Today'},
+    {id:2,subj:'eng',chap:'Formal and Lexical Aspect of Language',name:'Tenses Cheat Sheet.pdf',size:'640 KB',date:'3 days ago'},
+  ],
+  doubts: [
+    {id:1,subj:'Biology',q:'Can you explain the Krebs cycle in more detail?',time:'2 hours ago',status:'Answered'},
+    {id:2,subj:'Physics',q:'What is the difference between AC and DC current?',time:'4 hours ago',status:'Answered'},
+  ],
+  testHistory: [],
+  lecturesWatched: 24, lecturesTotal: 30,
+  notesDownloaded: 18, notesTotal: 25,
+  testsAttempted: 12, testsTotal: 15,
+  doubtsAsked: 5, doubtsTotal: 10,
+  nextId: 1000,
+};
+
+let view = 'dashboard';
+let activeSubjId = null, activeChapId = null, activeTopicId = null;
+let lecturesActiveSubj = SUBJECTS[0].id;
+let notesActiveSubj = SUBJECTS[0].id;
+let sidebarOpen = false;
+let testSession = null;
+let mockSelectedSubjects = SUBJECTS.map(s=>s.id);
+let mockCount = 180;
+let pendingConfig = null; // {subjId, chapId, topicId, max, label}
+
+const QUESTION_TIME = 60;
+
+function go(v, extra={}){
+  view = v;
+  if(extra.subjId!==undefined) activeSubjId = extra.subjId;
+  if(extra.chapId!==undefined) activeChapId = extra.chapId;
+  if(extra.topicId!==undefined) activeTopicId = extra.topicId;
+  sidebarOpen = false;
+  render();
+  window.scrollTo(0,0);
+}
+function toggleSidebar(force){ sidebarOpen = force!==undefined?force:!sidebarOpen; render(); }
+
+function render(){
+  const app = document.getElementById('app');
+  if(!CURRENT_USER){
+    app.innerHTML = renderLoginScreen();
+    document.getElementById('overlay').classList.remove('show');
+    return;
+  }
+  app.innerHTML = `${renderSidebar()}<div class="main">${renderTopbar()}<div class="content">${renderView()}</div></div>`;
+  document.getElementById('overlay').classList.toggle('show', sidebarOpen);
+}
+
+function renderSidebar(){
+  const learn = [
+    {id:'dashboard', label:'Dashboard', icon:'home'},
+    {id:'subjects', label:'My Courses', icon:'book'},
+    {id:'lectures', label:'Lectures', icon:'play'},
+    {id:'notesPage', label:'Notes', icon:'notes'},
+  ];
+  const practice = [
+    {id:'tests', label:'MCQ Tests', icon:'clipboard'},
+    {id:'mock', label:'Mock Test Generator', icon:'target'},
+    {id:'doubt', label:'Live Doubt Session', icon:'chat'},
+    {id:'progress', label:'My Progress', icon:'chart'},
+    {id:'resources', label:'Study Resources', icon:'layers'},
+  ];
+  const map = {subjectDetail:'subjects', testRunner:'tests', testResult:'tests', testConfig:'tests', chapterNotes:'subjects'};
+  const cur = map[view] || view;
+  const item = it => `<button class="nav-item ${cur===it.id?'active':''}" onclick="go('${it.id}')">${ic(it.icon)} ${it.label}</button>`;
+  const adminGroup = CURRENT_USER && CURRENT_USER.role==='admin' ? `
+    <div class="nav-label">Admin</div>
+    <div class="nav-group">
+      <button class="nav-item ${cur==='adminStudents'?'active':''}" onclick="go('adminStudents')">${ic('user')} Manage Students</button>
+    </div>` : '';
+  return `
+  <div class="sidebar ${sidebarOpen?'open':''}" id="sidebar">
+    <div class="brand"><div class="mark">🎓</div><div class="name">Alam Creative<span>ACADEMY</span></div></div>
+    <div class="nav-label">Learn</div>
+    <div class="nav-group">${learn.map(item).join('')}</div>
+    <div class="nav-label">Practice &amp; Track</div>
+    <div class="nav-group">${practice.map(item).join('')}</div>
+    ${adminGroup}
+    <div class="nav-sep"></div>
+    <div class="nav-group">
+      <button class="nav-item" onclick="go('profile')">${ic('user')} Profile</button>
+      <button class="nav-item" onclick="doLogout()">${ic('logout')} Logout</button>
+    </div>
+  </div>`;
+}
+function initials(name){
+  return (name||'?').split(' ').filter(Boolean).slice(0,2).map(p=>p[0].toUpperCase()).join('');
+}
+function renderTopbar(){
+  const u = CURRENT_USER || {name:'', role:'student', studentId:''};
+  return `
+  <div class="topbar">
+    <button class="menu-btn" onclick="toggleSidebar(true)">${ic('menu')}</button>
+    <div class="search-box">${ic('search')}<span>Search lectures, notes, tests…</span></div>
+    <div class="topbar-right">
+      <div class="bell">${ic('bell')}<span class="dot">${DB.doubts.filter(d=>d.status==='Answered').length}</span></div>
+      <div class="user-chip" style="cursor:pointer" onclick="go('profile')">
+        <div class="avatar">${initials(u.name)}</div>
+        <div><div class="u-name">${u.name}</div><div class="u-role">${u.role==='admin'?'Administrator':u.studentId}</div></div>
+      </div>
+    </div>
+  </div>`;
+}
+function renderView(){
+  switch(view){
+    case 'dashboard': return renderDashboard();
+    case 'subjects': return renderSubjectsList();
+    case 'subjectDetail': return renderSubjectDetail();
+    case 'chapterNotes': return renderChapterNotes();
+    case 'lectures': return renderLecturesPage();
+    case 'notesPage': return renderNotesFilesPage();
+    case 'tests': return renderTestsHome();
+    case 'testConfig': return renderTestConfig();
+    case 'mock': return renderMockGenerator();
+    case 'testRunner': return renderTestRunner();
+    case 'testResult': return renderTestResult();
+    case 'doubt': return renderDoubtSession();
+    case 'progress': return renderProgress();
+    case 'resources': return renderResources();
+    case 'profile': return renderProfile();
+    case 'adminStudents': return renderAdminStudents();
+    default: return renderDashboard();
+  }
+}
+
+/* =========================================================
+   DASHBOARD
+========================================================= */
+function overallPct(){
+  const parts=[DB.lecturesWatched/DB.lecturesTotal, DB.notesDownloaded/DB.notesTotal, DB.testsAttempted/DB.testsTotal, DB.doubtsAsked/DB.doubtsTotal];
+  return Math.round(parts.reduce((a,b)=>a+b,0)/parts.length*100);
+}
+function donutSVG(pct, size=150, stroke=14, color='var(--gold)'){
+  const r=(size-stroke)/2, c=2*Math.PI*r, off=c*(1-pct/100);
+  return `<svg width="${size}" height="${size}"><circle cx="${size/2}" cy="${size/2}" r="${r}" stroke="#EEF1F7" stroke-width="${stroke}" fill="none"/><circle cx="${size/2}" cy="${size/2}" r="${r}" stroke="${color}" stroke-width="${stroke}" fill="none" stroke-dasharray="${c}" stroke-dashoffset="${off}" stroke-linecap="round"/></svg>`;
+}
+function subjectWeakness(subjId){
+  const hist = DB.testHistory.filter(h=>h.subjId===subjId);
+  if(hist.length===0){ const fallback={bio:65,chem:50,phy:40,eng:55,lr:70}; return fallback[subjId]; }
+  const avg = hist.reduce((a,h)=>a+(h.score/h.total*100),0)/hist.length;
+  return Math.round(avg);
+}
+function totalMCQCount(subjId){
+  const s = SUBJECTS.find(x=>x.id===subjId);
+  return s.chapters.reduce((a,c)=>a+chQCount(c),0);
+}
+
+function renderDashboard(){
+  const pct = overallPct();
+  return `
+  <div class="dash-grid">
+    <div>
+      <div class="hero">
+        <h1>Welcome to<br><span class="hi">Alam Creative Academy</span></h1>
+        <p>Smart Learning for MDCAT Success — Full PMDC 2025 Curriculum Loaded</p>
+        <button class="btn btn-gold" onclick="go('subjects')">Start Learning →</button>
+      </div>
+      <div class="card card-pad" style="margin-top:18px;">
+        <div class="section-head"><h2>MDCAT Subjects</h2><a class="view-all" href="#" onclick="go('subjects');return false;">View All</a></div>
+        <div class="grid subj-grid">
+          ${SUBJECTS.map(s=>`
+            <div class="subj-card">
+              <div class="subj-icon" style="background:${s.bg}">${s.emoji}</div>
+              <h3>${s.name}</h3>
+              <p>${s.chapters.length} Chapters · ${totalMCQCount(s.id)} MCQs</p>
+              <button class="btn btn-outline" onclick="go('subjectDetail',{subjId:'${s.id}'})">Start Learning</button>
+            </div>`).join('')}
+        </div>
+      </div>
+      <div class="card card-pad" style="margin-top:18px;">
+        <div class="section-head"><h2>Continue Learning</h2><a class="view-all" href="#" onclick="go('lectures');return false;">View All</a></div>
+        ${DB.lectures.slice(0,4).map((l,i)=>{
+          const s = SUBJECTS.find(x=>x.id===l.subj); const pcts=[70,40,30,20];
+          return `<div class="lecture-row">
+            <div class="lecture-thumb" style="background:${s.color}">${ic('video')}</div>
+            <div class="lecture-info"><h4>${s.name} — ${l.chap}</h4><p>${l.name}</p>
+              <div class="bar-track"><div class="bar-fill" style="width:${pcts[i]||30}%;background:${s.color}"></div></div></div>
+            <span class="lecture-meta">${pcts[i]||30}% Complete</span>
+            <button class="btn btn-blue" onclick="go('lectures')">Continue</button>
+          </div>`;
+        }).join('')}
+      </div>
+      <div class="card card-pad" style="margin-top:18px;">
+        <div class="section-head"><h2>Quick Access</h2></div>
+        <div class="grid quick-grid">
+          <div class="quick-item" style="cursor:pointer" onclick="go('lectures')"><div class="ic" style="background:var(--purple-bg);color:var(--purple)">${ic('play')}</div><h4>Watch Lectures</h4></div>
+          <div class="quick-item" style="cursor:pointer" onclick="go('notesPage')"><div class="ic" style="background:var(--green-bg);color:var(--green)">${ic('notes')}</div><h4>Download Notes</h4></div>
+          <div class="quick-item" style="cursor:pointer" onclick="go('mock')"><div class="ic" style="background:var(--red-bg);color:var(--red)">${ic('target')}</div><h4>Generate Mock Test</h4></div>
+          <div class="quick-item" style="cursor:pointer" onclick="go('doubt')"><div class="ic" style="background:var(--blue-bg);color:var(--blue)">${ic('chat')}</div><h4>Ask Doubt</h4></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card card-pad side-card">
+        <div class="section-head"><h2>Your Progress</h2><a class="view-all" href="#" onclick="go('progress');return false;">View Details</a></div>
+        <div class="progress-ring">${donutSVG(pct)}<div class="pct"><b>${pct}%</b><span>Overall Progress</span></div></div>
+        <div class="stat-row"><span class="lbl">${ic('book')} Lectures Watched</span><span class="val">${DB.lecturesWatched} / ${DB.lecturesTotal}</span></div>
+        <div class="stat-row"><span class="lbl">${ic('notes')} Notes Downloaded</span><span class="val">${DB.notesDownloaded} / ${DB.notesTotal}</span></div>
+        <div class="stat-row"><span class="lbl">${ic('clipboard')} Tests Attempted</span><span class="val">${DB.testsAttempted} / ${DB.testsTotal}</span></div>
+        <div class="stat-row"><span class="lbl">${ic('chat')} Doubt Questions</span><span class="val">${DB.doubtsAsked} / ${DB.doubtsTotal}</span></div>
+      </div>
+      <div class="card card-pad side-card">
+        <div class="section-head"><h2>Mock Test Generator</h2></div>
+        <p style="font-size:12.5px;color:var(--sub);margin-top:-6px;">Pick any number of MCQs — full-length PMDC pattern or custom.</p>
+        <button class="btn btn-gold" style="width:100%;justify-content:center;" onclick="go('mock')">${ic('target')} Generate a Test</button>
+      </div>
+      <div class="card card-pad side-card">
+        <div class="section-head"><h2>Weakness Analysis</h2><a class="view-all" href="#" onclick="go('progress');return false;">View All</a></div>
+        ${SUBJECTS.map(s=>{ const w=subjectWeakness(s.id); return `<div class="weak-row"><div class="top"><span>${s.name}</span><span>${w}%</span></div><div class="weak-track"><div class="weak-fill" style="width:${w}%;background:${s.color}"></div></div></div>`; }).join('')}
+      </div>
+      <div class="card card-pad side-card">
+        <div class="section-head"><h2>Recent Doubt Questions</h2><a class="view-all" href="#" onclick="go('doubt');return false;">View All</a></div>
+        ${DB.doubts.slice(0,2).map(d=>`<div class="doubt-item"><div class="ic">${ic('q')}</div><div style="flex:1"><h4>${d.q}</h4><p>${d.subj} — ${d.time}</p></div><span class="pill ${d.status==='Answered'?'pill-green':'pill-amber'}">${d.status}</span></div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+/* =========================================================
+   SUBJECTS / CHAPTERS / TOPICS
+========================================================= */
+function renderSubjectsList(){
+  return `
+  <div class="page-head"><div><h1>My Courses</h1><p>Full official PMDC MDCAT 2025 syllabus — organized into chapters and topics, each with its own notes and topic-wise test.</p></div></div>
+  <div class="grid subj-grid">
+    ${SUBJECTS.map(s=>`<div class="subj-card"><div class="subj-icon" style="background:${s.bg}">${s.emoji}</div><h3>${s.name}</h3><p>${s.chapters.length} Chapters · ${totalMCQCount(s.id)} MCQs</p><button class="btn btn-outline" onclick="go('subjectDetail',{subjId:'${s.id}'})">Open</button></div>`).join('')}
+  </div>`;
+}
+
+function renderSubjectDetail(){
+  const s = SUBJECTS.find(x=>x.id===activeSubjId) || SUBJECTS[0];
+  return `
+  <div class="breadcrumb"><a href="#" onclick="go('subjects');return false;">My Courses</a> / ${s.name}</div>
+  <div class="subj-hero"><div class="big-ic" style="background:${s.bg}">${s.emoji}</div>
+    <div><h1 style="margin:0;font-size:22px;">${s.name}</h1><p style="margin:3px 0 0;color:var(--sub);font-size:13.5px;">${s.chapters.length} official chapters · ${totalMCQCount(s.id)} MCQs in bank</p></div></div>
+  ${s.chapters.map(c=>`
+    <div class="chapter-card">
+      <div class="chead"><h3>${c.name}</h3><span class="pill pill-blue">${chQCount(c)} MCQs</span></div>
+      <div class="cmeta">${c.topics.length} topic${c.topics.length>1?'s':''}</div>
+      ${c.topics.map(t=>`
+        <div class="topic-row">
+          <div><div class="tname">${t.name}</div><div class="tmeta">${t.questions.length} MCQs</div></div>
+          <div class="topic-actions">
+            <button class="btn btn-outline btn-sm" onclick="go('chapterNotes',{subjId:'${s.id}',chapId:'${c.id}',topicId:'${t.id}'})">${ic('notes')} Notes</button>
+            <label class="btn btn-outline btn-sm" style="cursor:pointer;">${ic('upload')} Upload MCQs<input type="file" accept=".txt" style="display:none" onchange="importMCQs(event,'${s.id}','${c.id}','${t.id}')"></label>
+            <button class="btn btn-blue btn-sm" ${t.questions.length===0?'disabled':''} onclick="openTestConfig('${s.id}','${c.id}','${t.id}')">${ic('clock')} Topic Test</button>
+          </div>
+        </div>`).join('')}
+      <div class="chapter-actions" style="margin-top:12px;">
+        <button class="btn btn-navy btn-sm" ${chQCount(c)===0?'disabled':''} onclick="openTestConfig('${s.id}','${c.id}',null)">${ic('clipboard')} Full Chapter Test (all topics)</button>
+      </div>
+    </div>`).join('')}
+  <div class="card card-pad" style="background:#fbfcfe;">
+    <b style="font-size:13px;">Add your own MCQs (.txt upload format)</b>
+    <p style="font-size:12.5px;color:var(--sub);margin:8px 0 0;line-height:1.7;">
+      Q: Question text here<br>A) option one<br>B) option two<br>C) option three<br>D) option four<br>Answer: B<br><br>
+      Separate each question with a blank line. Upload straight into any topic above — new MCQs are added to the bank immediately and usable in topic tests, chapter tests, and the Mock Test Generator.
+    </p>
+  </div>`;
+}
+function importMCQs(evt, subjId, chapId, topicId){
+  const file = evt.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e=>{
+    const text = e.target.result;
+    const blocks = text.split(/\n\s*\n/).map(b=>b.trim()).filter(Boolean);
+    const parsed = [];
+    blocks.forEach(block=>{
+      const qMatch = block.match(/Q:\s*(.+)/i);
+      const optMatches = [...block.matchAll(/^[A-D]\)\s*(.+)$/gim)];
+      const ansMatch = block.match(/Answer:\s*([A-D])/i);
+      if(qMatch && optMatches.length===4 && ansMatch){
+        const ansIdx = 'ABCD'.indexOf(ansMatch[1].toUpperCase());
+        parsed.push(mcq(qMatch[1].trim(), optMatches.map(m=>m[1].trim()), ansIdx));
+      }
+    });
+    if(parsed.length===0){ alert('No valid MCQs found. Please check the format.'); return; }
+    const {t} = findTopic(subjId,chapId,topicId);
+    t.questions.push(...parsed);
+    alert(parsed.length+' MCQs added to "'+t.name+'". Total now: '+t.questions.length);
+    render();
+  };
+  reader.readAsText(file);
+}
+
+function renderChapterNotes(){
+  const {s,c,t} = findTopic(activeSubjId, activeChapId, activeTopicId);
+  return `
+  <div class="breadcrumb"><a href="#" onclick="go('subjects');return false;">My Courses</a> / <a href="#" onclick="go('subjectDetail',{subjId:'${s.id}'});return false;">${s.name}</a> / ${c.name} / ${t.name}</div>
+  <div class="subj-hero"><div class="big-ic" style="background:${s.bg}">${s.emoji}</div><div><h1 style="margin:0;font-size:20px;">${t.name}</h1><p style="margin:3px 0 0;color:var(--sub);font-size:13px;">${c.name} · Premium revision notes · ${t.questions.length} MCQs in bank</p></div></div>
+  <div class="notes-box"><ul>${t.notes.length? t.notes.map(n=>`<li>${n}</li>`).join(''): '<li>No notes added yet for this topic.</li>'}</ul></div>
+  <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+    <button class="btn btn-blue" ${t.questions.length===0?'disabled':''} onclick="openTestConfig('${s.id}','${c.id}','${t.id}')">${ic('clock')} Take a Test on this Topic</button>
+    <button class="btn btn-outline" onclick="go('subjectDetail',{subjId:'${s.id}'})">Back to Chapters</button>
+  </div>`;
+}
+
+/* =========================================================
+   LECTURES PAGE (standalone)
+========================================================= */
+function renderLecturesPage(){
+  const s = SUBJECTS.find(x=>x.id===lecturesActiveSubj) || SUBJECTS[0];
+  return `
+  <div class="page-head"><div><h1>Lectures</h1><p>Upload and watch lecture videos, organized by subject and chapter.</p></div></div>
+  <div class="subj-tab-row">
+    ${SUBJECTS.map(sub=>`<button class="subj-tab ${sub.id===s.id?'active':''}" onclick="setLecturesSubj('${sub.id}')">${sub.emoji} ${sub.name}</button>`).join('')}
+  </div>
+  ${renderFileManager(s,'lectures')}`;
+}
+function setLecturesSubj(id){ lecturesActiveSubj = id; render(); }
+
+/* =========================================================
+   NOTES FILES PAGE (standalone, uploaded files)
+========================================================= */
+function renderNotesFilesPage(){
+  const s = SUBJECTS.find(x=>x.id===notesActiveSubj) || SUBJECTS[0];
+  return `
+  <div class="page-head"><div><h1>Notes</h1><p>Upload and download notes files, organized by subject and chapter.</p></div></div>
+  <div class="subj-tab-row">
+    ${SUBJECTS.map(sub=>`<button class="subj-tab ${sub.id===s.id?'active':''}" onclick="setNotesSubj('${sub.id}')">${sub.emoji} ${sub.name}</button>`).join('')}
+  </div>
+  ${renderFileManager(s,'notes')}`;
+}
+function setNotesSubj(id){ notesActiveSubj = id; render(); }
+
+// Files now live on the backend (see server.js -> /api/files). FILES_CACHE
+// holds the last-fetched list per category; null means "not loaded yet".
+let FILES_CACHE = { lecture: null, notes: null };
+const CATEGORY_OF = { lectures: 'lecture', notes: 'notes' };
+
+// ---------------------------------------------------------------------
+// BUG FIX (Android file picker "select file -> nothing happens"):
+// The old code put <input type="file"> INSIDE the reactive #app tree that
+// render() fully replaces via innerHTML on every state change (including
+// background fetches completing, like the file-list load that fires the
+// moment this page opens). On a slow/flaky mobile connection, that
+// background fetch can resolve WHILE the native Android file picker is
+// still open, triggering render() and destroying the very <input> the
+// picker's 'change' event was about to fire on -- so the event has
+// nowhere to land and nothing happens, with no error at all.
+//
+// Fix: a single <input type="file"> lives OUTSIDE #app (appended directly
+// to <body>, created once below, never touched by render()), so no amount
+// of re-rendering elsewhere on the page can ever destroy it mid-picker.
+// ---------------------------------------------------------------------
+const ACCEPT_ATTR = '.pdf,application/pdf,.doc,application/msword,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.ppt,application/vnd.ms-powerpoint,.pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation,.xls,application/vnd.ms-excel,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,.jpg,.jpeg,image/jpeg,.png,image/png,.txt,text/plain';
+const globalFileInput = document.createElement('input');
+globalFileInput.type = 'file';
+globalFileInput.accept = ACCEPT_ATTR;
+globalFileInput.style.position = 'fixed';
+globalFileInput.style.left = '-9999px';
+globalFileInput.setAttribute('aria-hidden', 'true');
+document.body.appendChild(globalFileInput);
+
+let UPLOAD_CTX = null; // {subjId, category, chapter} captured at the moment "Choose File" is tapped
+// UPLOAD_UI holds all upload state declaratively per category, so it survives
+// any number of re-renders (it's plain JS data, not a DOM reference).
+let UPLOAD_UI = {
+  lecture: { status: 'idle', file: null, chapter: null, pct: 0, message: '' },
+  notes:   { status: 'idle', file: null, chapter: null, pct: 0, message: '' },
+};
+
+function triggerFileUpload(subjId, category){
+  const chapSel = document.getElementById('chapSelect_'+category);
+  const chapter = chapSel ? chapSel.value : null;
+  UPLOAD_CTX = { subjId, category, chapter };
+  globalFileInput.value = ''; // allow re-selecting the same file twice in a row
+  globalFileInput.click();
+}
+globalFileInput.addEventListener('change', function(evt){
+  const file = evt.target.files && evt.target.files[0];
+  if(!file || !UPLOAD_CTX) return;
+  const { category } = UPLOAD_CTX;
+  UPLOAD_UI[category] = { status: 'ready', file, chapter: UPLOAD_CTX.chapter, pct: 0, message: '' };
+  render();
+});
+function cancelPendingUpload(category){
+  UPLOAD_UI[category] = { status: 'idle', file: null, chapter: null, pct: 0, message: '' };
+  render();
+}
+function confirmUpload(category){
+  const ui = UPLOAD_UI[category];
+  if(!ui || !ui.file || !UPLOAD_CTX) return;
+  const { subjId } = UPLOAD_CTX;
+  const s = SUBJECTS.find(x=>x.id===subjId);
+
+  const fd = new FormData();
+  fd.append('file', ui.file);
+  fd.append('category', category);
+  fd.append('subject', s.name);
+  fd.append('chapter', ui.chapter || s.chapters[0].name);
+
+  UPLOAD_UI[category] = { ...ui, status:'uploading', pct:0, message:'' };
+  render();
+
+  const xhr = new XMLHttpRequest();
+  xhr.open('POST', API+'/files');
+  xhr.withCredentials = true;
+  if(CSRF_TOKEN) xhr.setRequestHeader('X-CSRF-Token', CSRF_TOKEN);
+  // Deliberately not setting Content-Type: the browser must generate the
+  // multipart boundary itself. Setting it manually on a FormData body is a
+  // classic cause of broken/unparseable uploads.
+
+  xhr.upload.onprogress = function(e){
+    if(!e.lengthComputable) return;
+    const pct = Math.round((e.loaded / e.total) * 100);
+    UPLOAD_UI[category].pct = pct;
+    // Fast path: update the bar directly so rapid progress events don't
+    // thrash a full app re-render; renderFileManager will still reflect
+    // the correct percentage if a re-render happens for any other reason.
+    const bar = document.getElementById('uploadProgressFill_'+category);
+    if(bar) bar.style.width = pct+'%';
+  };
+  xhr.onload = function(){
+    let data = {};
+    try{ data = JSON.parse(xhr.responseText||'{}'); }catch(e){}
+    if(xhr.status>=200 && xhr.status<300){
+      UPLOAD_UI[category] = { status:'success', file:null, chapter:null, pct:100, message:'Uploaded successfully.' };
+      FILES_CACHE[category] = null;
+      loadFiles(category); // re-fetches and calls render()
+    } else {
+      if(xhr.status===401){ CURRENT_USER=null; CSRF_TOKEN=null; render(); return; }
+      UPLOAD_UI[category] = { status:'error', file:ui.file, chapter:ui.chapter, pct:0, message: data.error || `Upload failed (status ${xhr.status}).` };
+      render();
+    }
+  };
+  xhr.onerror = function(){
+    UPLOAD_UI[category] = { status:'error', file:ui.file, chapter:ui.chapter, pct:0, message:'Network error during upload. Check your connection and try again.' };
+    render();
+  };
+  xhr.send(fd);
+}
+
+async function loadFiles(category){
+  try{
+    const res = await apiFetch('/files?category='+category);
+    const data = await res.json();
+    FILES_CACHE[category] = res.ok ? data.files : [];
+  }catch(e){ FILES_CACHE[category] = []; }
+  render();
+}
+function renderFileManager(s, kindPage){
+  const category = CATEGORY_OF[kindPage];
+  if(FILES_CACHE[category]===null) loadFiles(category);
+  const all = FILES_CACHE[category] || [];
+  const list = all.filter(f=>f.subject===s.name);
+  const label = category==='lecture' ? 'lecture file' : 'notes file';
+  const chapOptions = s.chapters.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');
+  const ui = UPLOAD_UI[category];
+
+  let uploadBoxInner;
+  if(ui.status==='ready'){
+    uploadBoxInner = `
+      <div style="text-align:left;max-width:380px;margin:0 auto;">
+        <div style="display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--line);border-radius:11px;background:#fff;margin-bottom:12px;">
+          <div class="fic" style="background:${s.bg};color:${s.color}">${ic('file')}</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-weight:700;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${ui.file.name}</div>
+            <div style="font-size:11.5px;color:var(--sub);">${fmtBytes(ui.file.size)} · ${ui.chapter||s.chapters[0].name}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-gold" style="flex:1;justify-content:center;" onclick="confirmUpload('${category}')">${ic('upload')} Upload Now</button>
+          <button class="btn btn-outline" onclick="cancelPendingUpload('${category}')">Cancel</button>
+        </div>
+      </div>`;
+  } else if(ui.status==='uploading'){
+    uploadBoxInner = `
+      <div style="text-align:left;max-width:380px;margin:0 auto;">
+        <div style="font-weight:700;font-size:13px;margin-bottom:8px;">Uploading ${ui.file?ui.file.name:''}…</div>
+        <div class="qprogress-track"><div id="uploadProgressFill_${category}" class="qprogress-fill" style="width:${ui.pct}%"></div></div>
+        <div style="font-size:11.5px;color:var(--sub);margin-top:6px;">${ui.pct}%</div>
+      </div>`;
+  } else {
+    uploadBoxInner = `
+      <div style="max-width:340px;margin:0 auto;text-align:left;">
+        <select id="chapSelect_${category}" style="width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:9px;margin-bottom:10px;">${chapOptions}</select>
+      </div>
+      <button class="btn btn-navy" onclick="triggerFileUpload('${s.id}','${category}')">${ic('upload')} Choose File</button>`;
+  }
+
+  const flash = (ui.status==='success'||ui.status==='error') ? `
+    <div style="display:block;font-size:12px;font-weight:600;margin-top:12px;padding:8px 12px;border-radius:9px;max-width:380px;margin-left:auto;margin-right:auto;
+      background:${ui.status==='success'?'var(--green-bg)':'var(--red-bg)'};color:${ui.status==='success'?'var(--green)':'var(--red)'};">
+      ${ui.message}
+    </div>` : '';
+
+  return `
+  <div class="upload-box">
+    ${ic('upload')}
+    <p style="margin:8px 0 12px;">Add a new ${label} for <b>${s.name}</b></p>
+    <p style="margin:0 0 12px;font-size:11.5px;color:var(--sub);">Accepted: PDF, DOC/DOCX, PPT/PPTX, XLS/XLSX, JPG/PNG, TXT — up to 25 MB. Works from Android's file picker and Windows/Mac file browsers.</p>
+    ${uploadBoxInner}
+    ${flash}
+  </div>
+  <div>
+    ${FILES_CACHE[category]===null ? `<div class="empty-state">Loading…</div>` :
+      list.length===0?`<div class="empty-state"><div class="ic">📂</div>No ${label}s uploaded yet for ${s.name}.</div>`:
+      list.map(f=>`<div class="file-row">
+        <div class="fic" style="background:${s.bg};color:${s.color}">${ic('file')}</div>
+        <div class="finfo"><h4>${f.name}</h4><p>${f.chapter||''} · ${fmtBytes(f.sizeBytes)} · ${fmtDate(f.uploadedAt)} · by ${f.uploadedBy.name}</p></div>
+        <a class="icon-btn" style="text-decoration:none;" href="${API}/files/${f.id}/download" title="Download">${ic('upload')}</a>
+        ${(CURRENT_USER.role==='admin' || f.uploadedBy.studentId===CURRENT_USER.studentId) ? `<button class="icon-btn" onclick="deleteFile('${category}',${f.id})" title="Delete">${ic('trash')}</button>` : ''}
+      </div>`).join('')}
+  </div>`;
+}
+async function deleteFile(category, id){
+  try{
+    const res = await apiFetch('/files/'+id, {method:'DELETE'});
+    if(res.ok){ FILES_CACHE[category]=null; await loadFiles(category); }
+    else { const data = await res.json(); alert(data.error||'Could not delete file.'); }
+  }catch(e){ alert('Network error.'); }
+}
+
+/* =========================================================
+   TESTS HOME (topic + chapter-wise)
+========================================================= */
+function renderTestsHome(){
+  return `
+  <div class="page-head"><div><h1>MCQ Tests</h1><p>Topic-wise and chapter-wise tests · you choose how many MCQs · 1 minute per MCQ · auto-skips if time runs out.</p></div>
+    <button class="btn btn-gold" onclick="go('mock')">${ic('target')} Full Mock Test Generator</button>
+  </div>
+  ${SUBJECTS.map(s=>`
+    <div class="card card-pad" style="margin-bottom:16px;">
+      <div class="section-head"><h2>${s.emoji} ${s.name}</h2><span class="pill pill-blue">${totalMCQCount(s.id)} MCQs</span></div>
+      ${s.chapters.map(c=>`
+        <div class="chapter-card">
+          <div class="chead"><h3>${c.name}</h3><button class="btn btn-navy btn-sm" ${chQCount(c)===0?'disabled':''} onclick="openTestConfig('${s.id}','${c.id}',null)">Full Chapter Test</button></div>
+          ${c.topics.map(t=>`
+            <div class="topic-row">
+              <div><div class="tname">${t.name}</div><div class="tmeta">${t.questions.length} MCQs</div></div>
+              <button class="btn btn-blue btn-sm" ${t.questions.length===0?'disabled':''} onclick="openTestConfig('${s.id}','${c.id}','${t.id}')">${t.questions.length===0?'No MCQs yet':'Start Topic Test'}</button>
+            </div>`).join('')}
+        </div>`).join('')}
+    </div>`).join('')}`;
+}
+
+function openTestConfig(subjId, chapId, topicId){
+  if(topicId){
+    const {t} = findTopic(subjId,chapId,topicId);
+    pendingConfig = {subjId, chapId, topicId, max:t.questions.length, label:t.name};
+  } else {
+    const {c} = findChapter(subjId,chapId);
+    pendingConfig = {subjId, chapId, topicId:null, max:chQCount(c), label:c.name+' (Full Chapter)'};
+  }
+  go('testConfig');
+}
+function renderTestConfig(){
+  if(!pendingConfig) return renderTestsHome();
+  const {s,c} = findChapter(pendingConfig.subjId, pendingConfig.chapId);
+  const max = pendingConfig.max;
+  return `
+  <div class="breadcrumb"><a href="#" onclick="go('tests');return false;">MCQ Tests</a> / ${s.name} / ${c.name}</div>
+  <div class="card card-pad" style="max-width:460px;">
+    <div class="section-head"><h2>Configure Your Test</h2></div>
+    <p style="font-size:13px;color:var(--sub);margin-top:-6px;"><b>${pendingConfig.label}</b> — ${max} MCQs are available. Choose how many you want — it's your call.</p>
+    <div class="preset-row">
+      ${[5,10,20,max].filter((v,i,a)=>a.indexOf(v)===i && v>0).map(v=>`<button class="preset-btn" onclick="setConfigCount(${v})" id="preset_${v}">${v===max?'All ('+max+')':v}</button>`).join('')}
+    </div>
+    <label>Number of MCQs for this test</label>
+    <input type="number" id="configCount" min="1" max="${max}" value="${Math.min(10,max)}">
+    <p style="font-size:12px;color:var(--sub);margin:-8px 0 14px;">Test duration: 1 minute per MCQ.</p>
+    <button class="btn btn-gold" style="width:100%;justify-content:center;" onclick="launchChapterTest()">${ic('clock')} Start Test</button>
+  </div>`;
+}
+function setConfigCount(v){ document.getElementById('configCount').value = v; }
+function launchChapterTest(){
+  const n = parseInt(document.getElementById('configCount').value)||1;
+  const {s,c} = findChapter(pendingConfig.subjId, pendingConfig.chapId);
+  let pool;
+  if(pendingConfig.topicId){
+    const t = c.topics.find(x=>x.id===pendingConfig.topicId);
+    pool = shuffle(t.questions.map(q=>({...q, subjId:s.id, subjName:s.name, chapId:c.id, chapName:c.name, topicId:t.id, topicName:t.name})));
+  } else {
+    pool = shuffle(chQuestions(c).map(q=>({...q, subjId:s.id, subjName:s.name, chapId:c.id, chapName:c.name})));
+  }
+  const chosen = pool.slice(0, Math.min(n, pool.length));
+  if(chosen.length===0){ alert('No MCQs available.'); return; }
+  testSession = { label:pendingConfig.label, subLabel:s.name+' · '+c.name, color:s.color, questions:chosen, idx:0, answers:new Array(chosen.length).fill(null), timeLeft:QUESTION_TIME };
+  go('testRunner');
+  runTimer();
+}
+function shuffle(arr){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+/* =========================================================
+   MOCK TEST GENERATOR
+========================================================= */
+function renderMockGenerator(){
+  const availableBySubj = {};
+  SUBJECTS.forEach(s=> availableBySubj[s.id] = totalMCQCount(s.id));
+  const selectedTotal = mockSelectedSubjects.reduce((a,id)=>a+availableBySubj[id],0);
+  return `
+  <div class="page-head"><div><h1>Mock Test Generator</h1><p>Build a custom test — any number of MCQs, matching the real PMDC MDCAT weightage or subjects of your choice.</p></div></div>
+  <div class="card card-pad" style="max-width:620px;">
+    <div class="section-head"><h2>1. How many MCQs?</h2></div>
+    <div class="preset-row">
+      ${[20,50,90,180].map(v=>`<button class="preset-btn ${mockCount===v?'active':''}" onclick="setMockPreset(${v})">${v===180?'180 (Full MDCAT)':v}</button>`).join('')}
+    </div>
+    <label>Or enter a custom number</label>
+    <input type="number" id="mockCountInput" min="1" value="${mockCount}" onchange="mockCount=parseInt(this.value)||1">
+
+    <div class="section-head" style="margin-top:6px;"><h2>2. Which subjects?</h2></div>
+    <p style="font-size:12px;color:var(--sub);margin-top:-8px;">MCQs are pulled proportionally using the official PMDC weightage (Biology 45% · Chemistry 25% · Physics 20% · English 5% · Logical Reasoning 5%), scaled to whichever subjects you select.</p>
+    <div>
+      ${SUBJECTS.map(s=>`
+        <label class="chip-select">
+          <input type="checkbox" ${mockSelectedSubjects.includes(s.id)?'checked':''} onchange="toggleMockSubject('${s.id}')">
+          ${s.emoji} ${s.name} <span style="color:var(--sub);font-weight:500;">(${availableBySubj[s.id]} available)</span>
+        </label>`).join('')}
+    </div>
+    <p style="font-size:12px;color:var(--sub);margin:10px 0 16px;">Total MCQs available in selected subjects: <b>${selectedTotal}</b>${mockCount>selectedTotal?' — your requested count is higher than what is available, so the test will use all available MCQs instead.':''}</p>
+    <button class="btn btn-gold" style="width:100%;justify-content:center;" onclick="generateMock()">${ic('target')} Generate Mock Test</button>
+  </div>`;
+}
+function setMockPreset(v){ mockCount=v; render(); }
+function toggleMockSubject(id){
+  if(mockSelectedSubjects.includes(id)) mockSelectedSubjects = mockSelectedSubjects.filter(x=>x!==id);
+  else mockSelectedSubjects.push(id);
+  if(mockSelectedSubjects.length===0) mockSelectedSubjects=[id];
+  render();
+}
+function generateMock(){
+  const countInput = document.getElementById('mockCountInput');
+  const total = countInput ? (parseInt(countInput.value)||1) : mockCount;
+  mockCount = total;
+  const selected = SUBJECTS.filter(s=>mockSelectedSubjects.includes(s.id));
+  const weightSum = selected.reduce((a,s)=>a+s.weight,0);
+  let picks = [];
+  let remaining = total;
+  selected.forEach((s,i)=>{
+    const isLast = i===selected.length-1;
+    const target = isLast ? remaining : Math.round(total * (s.weight/weightSum));
+    const pool = shuffle(s.chapters.flatMap(c=>chQuestions(c).map(q=>({...q, subjId:s.id, subjName:s.name, chapId:c.id, chapName:c.name}))));
+    const take = pool.slice(0, Math.min(target, pool.length));
+    picks = picks.concat(take);
+    remaining -= take.length;
+  });
+  picks = shuffle(picks);
+  if(picks.length===0){ alert('No MCQs available for the selected subjects yet.'); return; }
+  testSession = { label:'Mock Test', subLabel:(picks.length<total?`(${picks.length} of ${total} requested — that is all that is in the bank right now)`:selected.map(s=>s.name).join(', ')), color:'var(--navy)', questions:picks, idx:0, answers:new Array(picks.length).fill(null), timeLeft:QUESTION_TIME, isMock:true };
+  go('testRunner');
+  runTimer();
+}
+
+/* =========================================================
+   TEST RUNNER / RESULT
+========================================================= */
+function runTimer(){
+  clearInterval(window.__timerHandle);
+  window.__timerHandle = setInterval(()=>{
+    if(!testSession) { clearInterval(window.__timerHandle); return; }
+    testSession.timeLeft--;
+    if(testSession.timeLeft<=0){
+      if(testSession.answers[testSession.idx]===null) testSession.answers[testSession.idx] = -1;
+      nextQuestion(true);
+      return;
+    }
+    updateTimerDisplay();
+  },1000);
+}
+function updateTimerDisplay(){
+  const badge = document.getElementById('timerBadge');
+  const track = document.getElementById('qtimerTrack');
+  if(!badge||!testSession) return;
+  badge.textContent = testSession.timeLeft+'s';
+  badge.classList.toggle('low', testSession.timeLeft<=10);
+  if(track){ track.style.width = (testSession.timeLeft/QUESTION_TIME*100)+'%'; track.style.background = testSession.timeLeft<=10?'var(--red)':'var(--gold)'; }
+}
+function selectOption(i){ if(!testSession) return; testSession.answers[testSession.idx]=i; render(); }
+function nextQuestion(auto=false){
+  if(!testSession) return;
+  if(testSession.idx < testSession.questions.length-1){ testSession.idx++; testSession.timeLeft=QUESTION_TIME; render(); }
+  else finishTest();
+}
+function prevQuestion(){ if(!testSession || testSession.idx===0) return; testSession.idx--; testSession.timeLeft=QUESTION_TIME; render(); }
+
+function finishTest(){
+  clearInterval(window.__timerHandle);
+  const qs = testSession.questions, ans = testSession.answers;
+  const correct = ans.filter((a,i)=>a===qs[i].ans).length;
+  const skipped = ans.filter(a=>a===-1||a===null).length;
+  const wrong = qs.length - correct - skipped;
+  testSession.result = {correct, wrong, skipped, total:qs.length};
+
+  const bySubj = {};
+  qs.forEach((q,i)=>{
+    if(!bySubj[q.subjId]) bySubj[q.subjId] = {subjId:q.subjId, subjName:q.subjName, correct:0, total:0, chapName: testSession.isMock?'Mock Test':q.chapName, chapId:q.chapId};
+    bySubj[q.subjId].total++;
+    if(ans[i]===q.ans) bySubj[q.subjId].correct++;
+  });
+  Object.values(bySubj).forEach(b=>{
+    DB.testHistory.unshift({subjId:b.subjId, subjName:b.subjName, chapId:b.chapId, topicName:b.chapName, score:b.correct, total:b.total, date:'Just now'});
+  });
+  DB.testsAttempted++;
+  go('testResult');
+}
+
+function renderTestRunner(){
+  if(!testSession) return renderTestsHome();
+  const t = testSession, q = t.questions[t.idx], chosen = t.answers[t.idx];
+  const pct = Math.round((t.idx)/t.questions.length*100);
+  setTimeout(updateTimerDisplay,0);
+  return `
+  <div class="runner-top">
+    <div><div class="breadcrumb" style="margin-bottom:2px;">${t.subLabel||''}</div><h1 style="margin:0;font-size:19px;">${t.label}</h1></div>
+    <div class="timer-badge ${t.timeLeft<=10?'low':''}" id="timerBadge">${ic('clock')} ${t.timeLeft}s</div>
+  </div>
+  <div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--sub);font-weight:600;margin-bottom:6px;"><span>Question ${t.idx+1} of ${t.questions.length}</span><span>${pct}% complete</span></div>
+  <div class="qprogress-track"><div class="qprogress-fill" style="width:${pct}%"></div></div>
+  <div style="height:4px;background:var(--line);border-radius:4px;margin:6px 0 22px;overflow:hidden;"><div id="qtimerTrack" style="height:4px;background:${t.timeLeft<=10?'var(--red)':'var(--gold)'};width:${t.timeLeft/QUESTION_TIME*100}%;transition:width 1s linear;"></div></div>
+  <div class="card q-box">
+    ${t.isMock?`<div class="qsubj">${q.subjName}</div>`:''}
+    <h3>${t.idx+1}. ${q.q}</h3>
+    ${q.opts.map((o,i)=>`<div class="opt ${chosen===i?'selected':''}" onclick="selectOption(${i})"><span class="letter">${'ABCD'[i]}</span><span>${o}</span></div>`).join('')}
+  </div>
+  <div class="runner-nav">
+    <button class="btn btn-outline" onclick="prevQuestion()" ${t.idx===0?'disabled':''}>← Previous</button>
+    <button class="btn btn-gold" onclick="${t.idx===t.questions.length-1?'finishTest()':'nextQuestion()'}">${t.idx===t.questions.length-1?'Submit Test':'Next →'}</button>
+  </div>`;
+}
+
+function renderTestResult(){
+  if(!testSession || !testSession.result) return renderTestsHome();
+  const r = testSession.result;
+  const pct = Math.round(r.correct/r.total*100);
+  const subjBreakdown = {};
+  testSession.questions.forEach((q,i)=>{
+    if(!subjBreakdown[q.subjId]) subjBreakdown[q.subjId] = {name:q.subjName, correct:0, total:0};
+    subjBreakdown[q.subjId].total++;
+    if(testSession.answers[i]===q.ans) subjBreakdown[q.subjId].correct++;
+  });
+  const breakdownRows = Object.values(subjBreakdown);
+  return `
+  <div class="card"><div class="result-hero">
+    <p style="color:var(--sub);font-weight:600;margin:0 0 6px;">${testSession.label}</p>
+    <div class="score">${pct}%</div>
+    <p style="margin:4px 0 0;color:var(--sub);">${r.correct} out of ${r.total} correct</p>
+    <div class="result-stats">
+      <div class="rstat" style="background:var(--green-bg);"><b style="color:var(--green)">${r.correct}</b><span>Correct</span></div>
+      <div class="rstat" style="background:var(--red-bg);"><b style="color:var(--red)">${r.wrong}</b><span>Wrong</span></div>
+      <div class="rstat" style="background:var(--amber-bg);"><b style="color:var(--amber)">${r.skipped}</b><span>Skipped / Timed out</span></div>
+    </div>
+    ${breakdownRows.length>1?`
+    <div style="text-align:left;margin-top:26px;">
+      <b style="font-size:13px;">Subject-wise Breakdown</b>
+      ${breakdownRows.map(b=>`<div class="weak-row" style="margin-top:10px;"><div class="top"><span>${b.name}</span><span>${b.correct}/${b.total}</span></div><div class="weak-track"><div class="weak-fill" style="width:${Math.round(b.correct/b.total*100)}%;background:var(--navy)"></div></div></div>`).join('')}
+    </div>`:''}
+    <div style="margin-top:24px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+      <button class="btn btn-outline" onclick="go('tests')">Back to Tests</button>
+      <button class="btn btn-navy" onclick="go('progress')">View Weakness Analysis</button>
+    </div>
+  </div></div>
+  <div class="card card-pad" style="margin-top:16px;">
+    <div class="section-head"><h2>Answer Review</h2></div>
+    ${testSession.questions.map((q,i)=>{
+      const chosen = testSession.answers[i]; const isCorrect = chosen===q.ans; const isSkipped = chosen===-1||chosen===null;
+      return `<div style="padding:12px 0;border-bottom:1px solid var(--line);">
+        <p style="margin:0 0 6px;font-weight:600;font-size:13.5px;">${i+1}. ${q.q} <span class="pill ${isSkipped?'pill-amber':(isCorrect?'pill-green':'pill-red')}" style="margin-left:6px;">${isSkipped?'Skipped':(isCorrect?'Correct':'Wrong')}</span></p>
+        <p style="margin:0;font-size:12.5px;color:var(--sub);">Correct answer: <b>${q.opts[q.ans]}</b>${(!isCorrect&&!isSkipped)?` · Your answer: ${q.opts[chosen]}`:''}</p>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+/* =========================================================
+   DOUBT SESSION
+========================================================= */
+function renderDoubtSession(){
+  return `
+  <div class="page-head"><div><h1>Live Doubt Session</h1><p>Ask a question about any subject and get help from a mentor.</p></div></div>
+  <div class="dash-grid" style="grid-template-columns:1fr 1.3fr;">
+    <div class="card card-pad"><div class="section-head"><h2>Ask a New Doubt</h2></div>
+      <div>
+        <label>Subject</label>
+        <select id="doubtSubj">${SUBJECTS.map(s=>`<option value="${s.name}">${s.name}</option>`).join('')}</select>
+        <label>Your Question</label>
+        <textarea id="doubtText" placeholder="Type your doubt in detail..." required></textarea>
+        <button class="btn btn-gold" type="button" onclick="submitDoubt(event)" style="width:100%;justify-content:center;">Submit Question</button>
+      </div>
+    </div>
+    <div class="card card-pad"><div class="section-head"><h2>Your Questions (${DB.doubts.length})</h2></div>
+      ${DB.doubts.map(d=>`<div class="doubt-full"><div class="ic">${ic('q')}</div><div style="flex:1"><h4>${d.q}</h4><p>${d.subj} · ${d.time}</p></div><span class="pill ${d.status==='Answered'?'pill-green':'pill-amber'}">${d.status}</span></div>`).join('')}
+    </div>
+  </div>`;
+}
+function submitDoubt(evt){
+  evt.preventDefault();
+  const subj = document.getElementById('doubtSubj').value;
+  const text = document.getElementById('doubtText').value.trim();
+  if(!text) return;
+  DB.doubts.unshift({id:DB.nextId++, subj, q:text, time:'Just now', status:'Pending'});
+  DB.doubtsAsked++;
+  render();
+}
+
+/* =========================================================
+   PROGRESS
+========================================================= */
+function renderProgress(){
+  const pct = overallPct();
+  return `
+  <div class="page-head"><div><h1>My Progress</h1><p>Your overall learning progress and subject-wise weakness analysis.</p></div></div>
+  <div class="dash-grid" style="grid-template-columns:1fr 1.4fr;">
+    <div class="card card-pad" style="text-align:center;">
+      <div class="progress-ring">${donutSVG(pct,170,16)}<div class="pct"><b>${pct}%</b><span>Overall Progress</span></div></div>
+      <div style="text-align:left;margin-top:10px;">
+        <div class="stat-row"><span class="lbl">${ic('book')} Lectures Watched</span><span class="val">${DB.lecturesWatched} / ${DB.lecturesTotal}</span></div>
+        <div class="stat-row"><span class="lbl">${ic('notes')} Notes Downloaded</span><span class="val">${DB.notesDownloaded} / ${DB.notesTotal}</span></div>
+        <div class="stat-row"><span class="lbl">${ic('clipboard')} Tests Attempted</span><span class="val">${DB.testsAttempted} / ${DB.testsTotal}</span></div>
+        <div class="stat-row"><span class="lbl">${ic('chat')} Doubt Questions</span><span class="val">${DB.doubtsAsked} / ${DB.doubtsTotal}</span></div>
+      </div>
+    </div>
+    <div class="card card-pad">
+      <div class="section-head"><h2>Weakness Analysis by Subject</h2></div>
+      <p style="font-size:12.5px;color:var(--sub);margin-top:-6px;">Reflects your average performance in MCQ tests — the lower the bar, the more that subject needs attention.</p>
+      ${SUBJECTS.map(s=>{ const w=subjectWeakness(s.id); return `<div class="weak-row"><div class="top"><span>${s.emoji} ${s.name}</span><span>${w}%</span></div><div class="weak-track"><div class="weak-fill" style="width:${w}%;background:${s.color}"></div></div></div>`; }).join('')}
+    </div>
+  </div>
+  <div class="card card-pad" style="margin-top:18px;">
+    <div class="section-head"><h2>Test History</h2></div>
+    ${DB.testHistory.length===0?`<div class="empty-state">No tests attempted yet. Head to MCQ Tests or the Mock Test Generator to get started.</div>`:
+      DB.testHistory.map(h=>`<div class="lecture-row"><div class="lecture-thumb" style="background:var(--navy)">${ic('clipboard')}</div><div class="lecture-info"><h4>${h.subjName} — ${h.topicName}</h4><p>${h.date}</p></div><span class="pill ${h.score/h.total>=0.7?'pill-green':(h.score/h.total>=0.4?'pill-amber':'pill-red')}">${h.score}/${h.total}</span></div>`).join('')}
+  </div>`;
+}
+
+/* =========================================================
+   RESOURCES / PROFILE
+========================================================= */
+function renderResources(){
+  return `<div class="page-head"><div><h1>Study Resources</h1><p>Curated MDCAT prep material.</p></div></div>
+  <div class="card card-pad"><div class="empty-state"><div class="ic">📚</div>Past papers, formula sheets and revision guides will appear here once uploaded by your instructors.</div></div>`;
+}
+function renderProfile(){
+  const u = CURRENT_USER;
+  return `<div class="page-head"><div><h1>Profile</h1><p>Your account details.</p></div></div>
+  <div class="dash-grid" style="grid-template-columns:1fr 1fr;">
+  <div class="card card-pad">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
+      <div class="avatar" style="width:56px;height:56px;font-size:20px;">${initials(u.name)}</div>
+      <div><h3 style="margin:0;">${u.name}</h3><p style="margin:2px 0 0;color:var(--sub);font-size:13px;">${u.role==='admin'?'Administrator':'MDCAT Student'}</p></div>
+    </div>
+    ${u.role!=='admin' ? `<div style="margin-bottom:14px;"><span class="id-badge">${ic('user')} ${u.studentId}</span></div>` : ''}
+    <div class="stat-row"><span class="lbl">${u.role==='admin'?'Admin ID':'Student ID'}</span><span class="val">${u.studentId}</span></div>
+    <div class="stat-row"><span class="lbl">Email</span><span class="val">${u.email||'—'}</span></div>
+    <div class="stat-row"><span class="lbl">Member Since</span><span class="val">${fmtDate(u.createdAt)}</span></div>
+    ${u.role!=='admin' ? `<div class="stat-row"><span class="lbl">Account Status</span><span class="val"><span class="pill pill-green">${u.status}</span></span></div>` : ''}
+    ${u.role!=='admin' ? `
+    <div class="stat-row"><span class="lbl">Overall Progress</span><span class="val">${overallPct()}%</span></div>
+    <div class="stat-row"><span class="lbl">Tests Attempted</span><span class="val">${DB.testsAttempted}</span></div>
+    <div class="stat-row"><span class="lbl">Doubts Asked</span><span class="val">${DB.doubtsAsked}</span></div>` : ''}
+  </div>
+  <div class="card card-pad">
+    <div class="section-head"><h2>Change Password</h2></div>
+    <div id="pwMsg" style="display:none;font-size:12.5px;font-weight:600;margin:-6px 0 12px;padding:9px 12px;border-radius:9px;"></div>
+    <div>
+      <label>Current Password</label>
+      <input type="password" id="pwCurrent" required autocomplete="current-password">
+      <label>New Password (min. 8 characters)</label>
+      <input type="password" id="pwNew" required minlength="8" autocomplete="new-password" onkeydown="if(event.key==='Enter')handleChangePassword(event)">
+      <button class="btn btn-navy" type="button" onclick="handleChangePassword(event)" style="width:100%;justify-content:center;">Update Password</button>
+    </div>
+  </div>
+  </div>`;
+}
+async function handleChangePassword(evt){
+  evt.preventDefault();
+  const currentPassword = document.getElementById('pwCurrent').value;
+  const newPassword = document.getElementById('pwNew').value;
+  const msg = document.getElementById('pwMsg');
+  try{
+    const res = await apiFetch('/account/password', {method:'POST', body: JSON.stringify({currentPassword, newPassword})});
+    const data = await res.json();
+    msg.style.display='block';
+    if(res.ok){ msg.style.background='var(--green-bg)'; msg.style.color='var(--green)'; msg.textContent='Password updated.'; }
+    else { msg.style.background='var(--red-bg)'; msg.style.color='var(--red)'; msg.textContent=data.error||'Could not update password.'; }
+  }catch(e){ msg.style.display='block'; msg.style.background='var(--red-bg)'; msg.style.color='var(--red)'; msg.textContent='Network error.'; }
+}
+
+/* =========================================================
+   ADMIN — STUDENT MANAGEMENT
+========================================================= */
+let ADMIN_STUDENTS = null;
+let ADMIN_STU_QUERY = '';
+let EDITING_STU_ID = null;   // db id currently in inline-edit mode
+let RESETTING_STU_ID = null; // db id currently showing the reset-password field
+// BUG FIX (Student ID / success message not appearing after creating a
+// student): the old code wrote the success/error text directly onto a DOM
+// node via getElementById(...).textContent, then immediately kicked off
+// loadAdminStudents() to refresh the list. That refresh calls render(),
+// which replaces the ENTIRE #app subtree via innerHTML -- destroying the
+// very node the message was just written to, often within milliseconds.
+// Net effect: the "Pre-registered -- Student ID ACA-..." message flashed
+// and vanished before it could be read, and on a slow connection the form
+// could look like it never responded at all.
+// Fix: the flash message and the "submitting" state are now plain JS state
+// (ADMIN_STU_FLASH / ADMIN_STU_SUBMITTING), rendered as part of
+// renderAdminStudents()'s output, so they survive re-renders correctly
+// instead of being wiped by them. The form fields are similarly backed by
+// ADD_STU_FORM so they're preserved on error and deliberately cleared only
+// on success -- previously any re-render wiped user-typed input.
+let ADMIN_STU_FLASH = null;       // {type:'success'|'error', message}
+let ADMIN_STU_SUBMITTING = false;
+let ADD_STU_FORM = { name:'', studentId:'', password:'', email:'', phone:'' };
+
+async function loadAdminStudents(q){
+  try{
+    const qs = q ? ('?q='+encodeURIComponent(q)) : '';
+    const res = await apiFetch('/admin/students'+qs);
+    const data = await res.json();
+    ADMIN_STUDENTS = res.ok ? data.students : [];
+  }catch(e){ ADMIN_STUDENTS = []; }
+  render();
+}
+function statusPill(status){
+  const map = { PRE_REGISTERED:'pill-amber', ACTIVE:'pill-green', DISABLED:'pill-red' };
+  const label = { PRE_REGISTERED:'Pre-registered', ACTIVE:'Active', DISABLED:'Disabled' };
+  return `<span class="pill ${map[status]||'pill-blue'}">${label[status]||status}</span>`;
+}
+function renderAdminStudents(){
+  if(ADMIN_STUDENTS===null){ loadAdminStudents(ADMIN_STU_QUERY); }
+  const flash = ADMIN_STU_FLASH ? `
+    <div style="font-size:12.5px;font-weight:600;margin:-6px 0 12px;padding:9px 12px;border-radius:9px;
+      background:${ADMIN_STU_FLASH.type==='success'?'var(--green-bg)':'var(--red-bg)'};
+      color:${ADMIN_STU_FLASH.type==='success'?'var(--green)':'var(--red)'};">
+      ${ADMIN_STU_FLASH.message}
+    </div>` : '';
+  return `
+  <div class="page-head"><div><h1>Manage Students</h1><p>Pre-register a Student ID + password; the student activates it themselves with those exact credentials.</p></div></div>
+  <div class="dash-grid" style="grid-template-columns:1fr 1.6fr;">
+    <div class="card card-pad">
+      <div class="section-head"><h2>Add / Pre-Register Student</h2></div>
+      ${flash}
+      <div>
+        <label>Full Name</label>
+        <input type="text" id="stuName" required value="${ADD_STU_FORM.name}" oninput="ADD_STU_FORM.name=this.value">
+        <label>Student ID <span style="font-weight:400;color:var(--sub);">(leave blank to auto-generate)</span></label>
+        <input type="text" id="stuId" placeholder="e.g. ACA-004" value="${ADD_STU_FORM.studentId}" oninput="ADD_STU_FORM.studentId=this.value">
+        <label>Initial Password (min. 8 characters)</label>
+        <input type="text" id="stuPassword" required minlength="8" value="${ADD_STU_FORM.password}" oninput="ADD_STU_FORM.password=this.value" onkeydown="if(event.key==='Enter')handleAddStudent(event)">
+        <label>Email <span style="font-weight:400;color:var(--sub);">(optional)</span></label>
+        <input type="email" id="stuEmail" value="${ADD_STU_FORM.email}" oninput="ADD_STU_FORM.email=this.value">
+        <label>Phone <span style="font-weight:400;color:var(--sub);">(optional)</span></label>
+        <input type="text" id="stuPhone" value="${ADD_STU_FORM.phone}" oninput="ADD_STU_FORM.phone=this.value">
+        <button class="btn btn-gold" type="button" onclick="handleAddStudent(event)" style="width:100%;justify-content:center;" ${ADMIN_STU_SUBMITTING?'disabled':''}>
+          ${ic('user')} ${ADMIN_STU_SUBMITTING?'Pre-Registering…':'Pre-Register Student'}
+        </button>
+      </div>
+      <p style="font-size:11.5px;color:var(--sub);margin-top:12px;line-height:1.6;">The student is created as <b>Pre-registered</b>. They can't log in until they visit "Activate Student Account" and enter this exact Student ID + password.</p>
+    </div>
+    <div class="card card-pad">
+      <div class="section-head"><h2>All Students${ADMIN_STUDENTS?` (${ADMIN_STUDENTS.length})`:''}</h2></div>
+      <div style="margin-bottom:14px;">
+        <input type="text" id="stuSearch" placeholder="Search by name, Student ID, or email…" value="${ADMIN_STU_QUERY}" oninput="handleStudentSearch(this.value)" style="margin-bottom:0;">
+      </div>
+      ${ADMIN_STUDENTS===null?`<div class="empty-state">Loading…</div>`:
+        ADMIN_STUDENTS.length===0?`<div class="empty-state">No accounts found.</div>`:
+        ADMIN_STUDENTS.map(s=>renderAdminStudentRow(s)).join('')}
+    </div>
+  </div>`;
+}
+function renderAdminStudentRow(s){
+  const isEditing = EDITING_STU_ID===s.id;
+  const isResetting = RESETTING_STU_ID===s.id;
+  return `
+  <div class="chapter-card" style="margin-bottom:10px;">
+    <div class="chead">
+      <div>
+        <h3 style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">${s.name} ${statusPill(s.status)} ${s.role==='admin'?'<span class="pill pill-blue">Admin</span>':''}</h3>
+        <div class="cmeta">${s.studentId} · ${s.email||'no email'}${s.phone?' · '+s.phone:''}</div>
+        <div class="cmeta">Joined ${fmtDate(s.createdAt)} · Activated ${fmtDate(s.activatedAt)} · Last login ${fmtDateTime(s.lastLoginAt)}</div>
+      </div>
+      <div class="topic-actions">
+        <button class="btn btn-outline btn-sm" onclick="toggleEditStudent(${s.id})">${isEditing?'Cancel':'Edit'}</button>
+        <button class="btn btn-outline btn-sm" onclick="toggleResetPassword(${s.id})">${isResetting?'Cancel':'Reset Password'}</button>
+        ${s.status!=='DISABLED'
+          ? `<button class="btn btn-outline btn-sm" onclick="setStudentStatus(${s.id},'DISABLED')">Disable</button>`
+          : `<button class="btn btn-outline btn-sm" onclick="setStudentStatus(${s.id},'ACTIVE')">Enable</button>`}
+        ${s.status==='PRE_REGISTERED' ? `<button class="btn btn-blue btn-sm" onclick="setStudentStatus(${s.id},'ACTIVE')">Force Activate</button>` : ''}
+        <button class="btn btn-outline btn-sm" onclick="deleteStudent(${s.id},'${s.name.replace(/'/g,"\\'")}')" style="color:var(--red);">${ic('trash')} Delete</button>
+      </div>
+    </div>
+    ${isEditing ? `
+    <div class="topic-row" style="display:block;">
+      <div id="editMsg_${s.id}" style="display:none;font-size:12px;font-weight:600;margin-bottom:10px;padding:8px 12px;border-radius:9px;"></div>
+      <label>Name</label><input type="text" id="editName_${s.id}" value="${s.name}">
+      <label>Email</label><input type="email" id="editEmail_${s.id}" value="${s.email||''}">
+      <label>Phone</label><input type="text" id="editPhone_${s.id}" value="${s.phone||''}">
+      <button class="btn btn-navy btn-sm" onclick="saveStudentEdit(${s.id})">Save Changes</button>
+    </div>` : ''}
+    ${isResetting ? `
+    <div class="topic-row" style="display:block;">
+      <div id="resetMsg_${s.id}" style="display:none;font-size:12px;font-weight:600;margin-bottom:10px;padding:8px 12px;border-radius:9px;"></div>
+      <label>New Password (min. 8 characters)</label>
+      <input type="text" id="resetPw_${s.id}" minlength="8" placeholder="New password for ${s.studentId}">
+      <button class="btn btn-navy btn-sm" onclick="saveResetPassword(${s.id})">Set New Password</button>
+    </div>` : ''}
+  </div>`;
+}
+let stuSearchTimer = null;
+function handleStudentSearch(v){
+  ADMIN_STU_QUERY = v;
+  clearTimeout(stuSearchTimer);
+  stuSearchTimer = setTimeout(()=>{ ADMIN_STUDENTS=null; loadAdminStudents(v); }, 300);
+}
+function toggleEditStudent(id){ EDITING_STU_ID = EDITING_STU_ID===id ? null : id; RESETTING_STU_ID=null; render(); }
+function toggleResetPassword(id){ RESETTING_STU_ID = RESETTING_STU_ID===id ? null : id; EDITING_STU_ID=null; render(); }
+
+async function handleAddStudent(evt){
+  evt.preventDefault();
+  const { name, studentId, password, email, phone } = ADD_STU_FORM;
+
+  if(!name.trim() || password.length < 8){
+    ADMIN_STU_FLASH = { type:'error', message: 'Name and a password of at least 8 characters are required.' };
+    render();
+    return;
+  }
+
+  ADMIN_STU_SUBMITTING = true; ADMIN_STU_FLASH = null;
+  render();
+  try{
+    const res = await apiFetch('/admin/students', {
+      method:'POST',
+      body: JSON.stringify({ name: name.trim(), studentId: studentId.trim(), password, email: email.trim(), phone: phone.trim() }),
+    });
+    const data = await res.json();
+    if(res.ok){
+      ADMIN_STU_FLASH = { type:'success', message: `Pre-registered — Student ID ${data.user.studentId}. Give the student this ID and password to activate.` };
+      ADD_STU_FORM = { name:'', studentId:'', password:'', email:'', phone:'' };
+      ADMIN_STUDENTS = null;
+      loadAdminStudents(ADMIN_STU_QUERY); // re-fetches the list and re-renders when done
+    } else {
+      // Covers duplicate email / duplicate Student ID / validation errors --
+      // always a clear message, never a silent stuck state.
+      ADMIN_STU_FLASH = { type:'error', message: data.error || 'Could not create student.' };
+    }
+  }catch(e){
+    ADMIN_STU_FLASH = { type:'error', message:'Network error. Check your connection and try again.' };
+  } finally {
+    // Always reached, whether success, a handled error response, or a
+    // thrown exception -- the button can never get stuck disabled/loading.
+    ADMIN_STU_SUBMITTING = false;
+    render();
+  }
+}
+async function saveStudentEdit(id){
+  const name = document.getElementById('editName_'+id).value.trim();
+  const email = document.getElementById('editEmail_'+id).value.trim();
+  const phone = document.getElementById('editPhone_'+id).value.trim();
+  const msg = document.getElementById('editMsg_'+id);
+  try{
+    const res = await apiFetch('/admin/students/'+id, {method:'PATCH', body: JSON.stringify({name, email, phone})});
+    const data = await res.json();
+    msg.style.display='block';
+    if(res.ok){ msg.style.background='var(--green-bg)'; msg.style.color='var(--green)'; msg.textContent='Saved.'; EDITING_STU_ID=null; ADMIN_STUDENTS=null; loadAdminStudents(ADMIN_STU_QUERY); }
+    else { msg.style.background='var(--red-bg)'; msg.style.color='var(--red)'; msg.textContent = data.error||'Could not save.'; }
+  }catch(e){ msg.style.display='block'; msg.style.background='var(--red-bg)'; msg.style.color='var(--red)'; msg.textContent='Network error.'; }
+}
+async function saveResetPassword(id){
+  const newPassword = document.getElementById('resetPw_'+id).value;
+  const msg = document.getElementById('resetMsg_'+id);
+  try{
+    const res = await apiFetch('/admin/students/'+id+'/reset-password', {method:'POST', body: JSON.stringify({newPassword})});
+    const data = await res.json();
+    msg.style.display='block';
+    if(res.ok){ msg.style.background='var(--green-bg)'; msg.style.color='var(--green)'; msg.textContent='Password updated.'; setTimeout(()=>{RESETTING_STU_ID=null; render();},1200); }
+    else { msg.style.background='var(--red-bg)'; msg.style.color='var(--red)'; msg.textContent = data.error||'Could not reset password.'; }
+  }catch(e){ msg.style.display='block'; msg.style.background='var(--red-bg)'; msg.style.color='var(--red)'; msg.textContent='Network error.'; }
+}
+async function setStudentStatus(id, status){
+  try{
+    const res = await apiFetch('/admin/students/'+id+'/status', {method:'POST', body: JSON.stringify({status})});
+    if(res.ok){ ADMIN_STUDENTS=null; loadAdminStudents(ADMIN_STU_QUERY); }
+    else { const data = await res.json(); alert(data.error||'Could not update status.'); }
+  }catch(e){ alert('Network error.'); }
+}
+async function deleteStudent(id, name){
+  if(!confirm(`Permanently delete ${name}? This also removes their uploaded files. This cannot be undone.`)) return;
+  try{
+    const res = await apiFetch('/admin/students/'+id, {method:'DELETE'});
+    if(res.ok){ ADMIN_STUDENTS=null; loadAdminStudents(ADMIN_STU_QUERY); }
+    else { const data = await res.json(); alert(data.error||'Could not delete student.'); }
+  }catch(e){ alert('Network error.'); }
+}
+
+boot();
+</script>
+</body>
+</html>
