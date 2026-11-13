@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Alam Creative Academy | Learning Management System</title>
-<meta name="description" content="Alam Creative Academy learning management system for students and administrators, with subjects, lectures, notes, tests, progress tracking and student support." />
+<title>Alam Creative Academy | MDCAT Learning Platform</title>
+<meta name="description" content="Alam Creative Academy learning management system with open MDCAT subjects, chapters, revision notes, MCQ tests and local progress tracking." />
 <meta name="theme-color" content="#0B1A33" />
 <meta property="og:title" content="Alam Creative Academy | LMS" />
 <meta property="og:description" content="A modern learning management platform for Alam Creative Academy." />
@@ -248,19 +248,6 @@
   }
   .overlay{position:fixed;inset:0;background:rgba(10,20,45,.45);z-index:35;display:none;}
   .overlay.show{display:block;}
-
-  /* ---------- Login screen ---------- */
-  .login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(120% 140% at 20% 0%, rgba(232,169,59,.10), transparent 55%), var(--navy-dark);padding:20px;}
-  .login-card{width:100%;max-width:380px;background:var(--card);border-radius:20px;box-shadow:var(--shadow-md);padding:32px 28px;}
-  .login-card .brand{padding:0 0 22px;justify-content:center;}
-  .login-card .brand .name{color:var(--navy);}
-  .login-card .brand .name span{color:var(--gold-dark);}
-  .login-card h2{margin:0 0 4px;font-size:18px;text-align:center;}
-  .login-card p.sub{margin:0 0 22px;color:var(--sub);font-size:12.5px;text-align:center;}
-  .login-error{background:var(--red-bg);color:var(--red);border-radius:10px;padding:9px 12px;font-size:12.5px;font-weight:600;margin-bottom:14px;display:none;}
-  .login-error.show{display:block;}
-  .login-hint{margin-top:16px;padding:12px 14px;border-radius:11px;background:var(--bg);font-size:11.5px;color:var(--sub);line-height:1.6;}
-  .id-badge{display:inline-flex;align-items:center;gap:5px;background:var(--gold-soft);color:var(--gold-dark);font-weight:700;font-size:11px;padding:3px 10px;border-radius:999px;letter-spacing:.2px;}
 </style>
 </head>
 <body>
@@ -295,26 +282,13 @@ const ICONS = {
 function ic(name,cls=''){return `<span class="${cls}" style="display:inline-flex">${ICONS[name]||''}</span>`;}
 
 /* =========================================================
-   AUTH / API LAYER
-   Talks to the Node backend (server.js) for login, sessions,
-   Student IDs, and file storage. Nothing here trusts the client:
-   the server re-checks auth and role on every request.
+   STATIC PUBLIC MODE
+   No accounts, activation, admin portal, or server API.
+   Student activity is saved locally in this browser.
 ========================================================= */
-const API = '/api';
-let CURRENT_USER = null;   // {id, studentId, name, email, role, status, createdAt, activatedAt, lastLoginAt}
+const API = '';
+let CURRENT_USER = {id:'local-visitor', studentId:'VISITOR', name:'Student', email:'', role:'student', status:'LOCAL'};
 let CSRF_TOKEN = null;
-let AUTH_ERROR = '';
-let AUTH_NOTE = '';        // non-error info message on the auth screens
-let authView = 'studentLogin'; // 'studentLogin' | 'activate' | 'adminLogin'
-
-async function apiFetch(path, opts={}){
-  const headers = Object.assign({}, opts.headers||{});
-  if(opts.body && !(opts.body instanceof FormData)) headers['Content-Type']='application/json';
-  if(CSRF_TOKEN && opts.method && opts.method!=='GET') headers['X-CSRF-Token']=CSRF_TOKEN;
-  const res = await fetch(API+path, Object.assign({}, opts, {headers, credentials:'same-origin'}));
-  if(res.status===401){ CURRENT_USER=null; CSRF_TOKEN=null; render(); }
-  return res;
-}
 function fmtBytes(n){
   if(n<1024) return n+' B';
   if(n<1024*1024) return (n/1024).toFixed(1)+' KB';
@@ -322,183 +296,10 @@ function fmtBytes(n){
 }
 function fmtDate(iso){
   if(!iso) return '—';
-  const d = new Date(iso.replace(' ','T')+(iso.includes('Z')?'':'Z'));
-  if(isNaN(d)) return iso;
-  return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
+  const d = new Date(iso);
+  return isNaN(d) ? String(iso) : d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
 }
-function fmtDateTime(iso){
-  if(!iso) return '—';
-  const d = new Date(iso.replace(' ','T')+(iso.includes('Z')?'':'Z'));
-  if(isNaN(d)) return iso;
-  return d.toLocaleString(undefined,{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
-}
-
-async function boot(){
-  try{
-    const res = await fetch(API+'/me', {credentials:'same-origin'});
-    if(res.ok){
-      const data = await res.json();
-      CURRENT_USER = data.user; CSRF_TOKEN = data.csrfToken;
-    } else {
-      CURRENT_USER = null;
-    }
-  } catch(e){ CURRENT_USER = null; }
-  render();
-}
-
-function goAuth(v){ authView=v; AUTH_ERROR=''; AUTH_NOTE=''; render(); }
-
-async function handleStudentLoginSubmit(evt){
-  evt.preventDefault();
-  const identifier = document.getElementById('loginId').value.trim();
-  const password = document.getElementById('loginPw').value;
-  const btn = document.getElementById('loginBtn');
-  btn.disabled = true; btn.textContent = 'Signing in…';
-  try{
-    const res = await fetch(API+'/login', {
-      method:'POST', credentials:'same-origin',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({identifier, password, portal:'student'})
-    });
-    const data = await res.json();
-    if(!res.ok){ AUTH_ERROR = data.error || 'Login failed'; btn.disabled=false; btn.textContent='Sign In'; render(); return; }
-    CURRENT_USER = data.user; CSRF_TOKEN = data.csrfToken; AUTH_ERROR='';
-    view = 'dashboard';
-    render();
-  } catch(e){
-    AUTH_ERROR = 'Could not reach the server. Please try again.';
-    render();
-  }
-}
-
-async function handleActivateSubmit(evt){
-  evt.preventDefault();
-  const studentId = document.getElementById('actId').value.trim();
-  const password = document.getElementById('actPw').value;
-  const btn = document.getElementById('actBtn');
-  btn.disabled = true; btn.textContent = 'Activating…';
-  try{
-    const res = await fetch(API+'/activate', {
-      method:'POST', credentials:'same-origin',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({studentId, password})
-    });
-    const data = await res.json();
-    if(!res.ok){ AUTH_ERROR = data.error || 'Activation failed'; btn.disabled=false; btn.textContent='Activate Account'; render(); return; }
-    CURRENT_USER = data.user; CSRF_TOKEN = data.csrfToken; AUTH_ERROR='';
-    view = 'dashboard';
-    render();
-  } catch(e){
-    AUTH_ERROR = 'Could not reach the server. Please try again.';
-    render();
-  }
-}
-
-async function handleAdminLoginSubmit(evt){
-  evt.preventDefault();
-  const identifier = document.getElementById('adminLoginId').value.trim();
-  const password = document.getElementById('adminLoginPw').value;
-  const btn = document.getElementById('adminLoginBtn');
-  btn.disabled = true; btn.textContent = 'Signing in…';
-  try{
-    const res = await fetch(API+'/login', {
-      method:'POST', credentials:'same-origin',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({identifier, password, portal:'admin'})
-    });
-    const data = await res.json();
-    if(!res.ok){ AUTH_ERROR = data.error || 'Login failed'; btn.disabled=false; btn.textContent='Admin Login'; render(); return; }
-    CURRENT_USER = data.user; CSRF_TOKEN = data.csrfToken; AUTH_ERROR='';
-    view = 'dashboard';
-    render();
-  } catch(e){
-    AUTH_ERROR = 'Could not reach the server. Please try again.';
-    render();
-  }
-}
-
-async function doLogout(){
-  try{ await apiFetch('/logout', {method:'POST'}); } catch(e){}
-  CURRENT_USER = null; CSRF_TOKEN = null; FILES_CACHE = {lecture:null, notes:null}; ADMIN_STUDENTS = null;
-  view = 'dashboard'; authView = 'studentLogin';
-  render();
-}
-
-function renderLoginScreen(){
-  if(authView==='activate') return renderActivateScreen();
-  if(authView==='adminLogin') return renderAdminLoginScreen();
-  return renderStudentLoginScreen();
-}
-
-function renderStudentLoginScreen(){
-  return `
-  <div class="login-screen">
-    <div class="login-card">
-      <div class="brand"><div class="mark">🎓</div><div class="name">Alam Creative<span>ACADEMY</span></div></div>
-      <h2>Student Login</h2>
-      <p class="sub">Enter your Student ID and password</p>
-      <div class="login-error ${AUTH_ERROR?'show':''}">${AUTH_ERROR||''}</div>
-      <div>
-        <label>Student ID</label>
-        <input type="text" id="loginId" placeholder="ACA-001" required autocomplete="username">
-        <label>Password</label>
-        <input type="password" id="loginPw" placeholder="••••••••" required autocomplete="current-password" onkeydown="if(event.key==='Enter')handleStudentLoginSubmit(event)">
-        <button class="btn btn-gold" id="loginBtn" type="button" onclick="handleStudentLoginSubmit(event)" style="width:100%;justify-content:center;margin-top:4px;">Login</button>
-      </div>
-      <div class="login-hint" style="text-align:center;">
-        First time here? <a href="#" onclick="goAuth('activate');return false;" style="color:var(--blue);font-weight:700;">Activate Student Account</a>
-      </div>
-      <div style="text-align:center;margin-top:14px;">
-        <a href="#" onclick="goAuth('adminLogin');return false;" style="color:var(--sub);font-size:12px;font-weight:600;">Admin Login →</a>
-      </div>
-    </div>
-  </div>`;
-}
-
-function renderActivateScreen(){
-  return `
-  <div class="login-screen">
-    <div class="login-card">
-      <div class="brand"><div class="mark">🎓</div><div class="name">Alam Creative<span>ACADEMY</span></div></div>
-      <h2>Activate Student Account</h2>
-      <p class="sub">Use the Student ID and password your academy gave you</p>
-      <div class="login-error ${AUTH_ERROR?'show':''}">${AUTH_ERROR||''}</div>
-      <div>
-        <label>Student ID</label>
-        <input type="text" id="actId" placeholder="ACA-001" required autocomplete="username">
-        <label>Password</label>
-        <input type="password" id="actPw" placeholder="Password provided by your academy" required autocomplete="new-password" onkeydown="if(event.key==='Enter')handleActivateSubmit(event)">
-        <button class="btn btn-gold" id="actBtn" type="button" onclick="handleActivateSubmit(event)" style="width:100%;justify-content:center;margin-top:4px;">Activate Account</button>
-      </div>
-      <div class="login-hint">This only works if your academy admin has already created your Student ID and password. It will not create a brand-new account — it activates one that already exists.</div>
-      <div style="text-align:center;margin-top:14px;">
-        <a href="#" onclick="goAuth('studentLogin');return false;" style="color:var(--blue);font-size:12.5px;font-weight:700;">← Back to Student Login</a>
-      </div>
-    </div>
-  </div>`;
-}
-
-function renderAdminLoginScreen(){
-  return `
-  <div class="login-screen">
-    <div class="login-card">
-      <div class="brand"><div class="mark">🎓</div><div class="name">Alam Creative<span>ACADEMY</span></div></div>
-      <h2>Admin Login</h2>
-      <p class="sub">Administrator access only</p>
-      <div class="login-error ${AUTH_ERROR?'show':''}">${AUTH_ERROR||''}</div>
-      <div>
-        <label>Admin ID or Email</label>
-        <input type="text" id="adminLoginId" placeholder="admin@alamacademy.test" required autocomplete="username">
-        <label>Admin Password</label>
-        <input type="password" id="adminLoginPw" placeholder="••••••••" required autocomplete="current-password" onkeydown="if(event.key==='Enter')handleAdminLoginSubmit(event)">
-        <button class="btn btn-navy" id="adminLoginBtn" type="button" onclick="handleAdminLoginSubmit(event)" style="width:100%;justify-content:center;margin-top:4px;">Admin Login</button>
-      </div>
-      <div style="text-align:center;margin-top:14px;">
-        <a href="#" onclick="goAuth('studentLogin');return false;" style="color:var(--blue);font-size:12.5px;font-weight:700;">← Back to Student Login</a>
-      </div>
-    </div>
-  </div>`;
-}
+function fmtDateTime(iso){ return fmtDate(iso); }
 function mcq(q,opts,ans){return {q,opts,ans};}
 function tp(id,name,notes,questions){return {id,name,notes,questions};}
 function ch(id,name,topics){return {id,name,topics};}
@@ -1236,26 +1037,55 @@ function findTopic(subjId, chapId, topicId){
    APP STATE / DB
 ========================================================= */
 const DB = {
-  lectures: [
-    {id:1,subj:'bio',chap:'Cell Structure & Function',name:'Cell Structure — Full Lecture.mp4',size:'184 MB',date:'Today'},
-    {id:2,subj:'chem',chap:'Chemistry of Hydrocarbons',name:'Hydrocarbons Basics.mp4',size:'142 MB',date:'Yesterday'},
-    {id:3,subj:'phy',chap:'Force and Motion',name:"Newton's Laws Explained.mp4",size:'98 MB',date:'2 days ago'},
-  ],
-  notesFiles: [
-    {id:1,subj:'bio',chap:'Cell Structure & Function',name:'Cell Biology — Short Notes.pdf',size:'2.1 MB',date:'Today'},
-    {id:2,subj:'eng',chap:'Formal and Lexical Aspect of Language',name:'Tenses Cheat Sheet.pdf',size:'640 KB',date:'3 days ago'},
-  ],
+  lectures: [],
+  notesFiles: [],
   doubts: [
     {id:1,subj:'Biology',q:'Can you explain the Krebs cycle in more detail?',time:'2 hours ago',status:'Answered'},
     {id:2,subj:'Physics',q:'What is the difference between AC and DC current?',time:'4 hours ago',status:'Answered'},
   ],
   testHistory: [],
-  lecturesWatched: 24, lecturesTotal: 30,
-  notesDownloaded: 18, notesTotal: 25,
-  testsAttempted: 12, testsTotal: 15,
-  doubtsAsked: 5, doubtsTotal: 10,
+  lecturesWatched: 0, lecturesTotal: 0,
+  notesDownloaded: 0, notesTotal: 0,
+  testsAttempted: 0, testsTotal: 0,
+  doubtsAsked: 0, doubtsTotal: 0,
   nextId: 1000,
+  completedTopics: [],
+  bookmarkedTopics: [],
+  mcqAttempts: [],
 };
+const LOCAL_STATE_KEY = 'alam-mdcat-static-v1';
+function restoreLocalState(){
+  try{
+    const saved = JSON.parse(localStorage.getItem(LOCAL_STATE_KEY) || 'null');
+    if(saved && saved.db) Object.assign(DB, saved.db);
+    if(saved && Array.isArray(saved.subjects)){
+      saved.subjects.forEach(savedSubject=>{
+        const subject = SUBJECTS.find(s=>s.id===savedSubject.id);
+        if(!subject) return;
+        savedSubject.chapters.forEach(savedChapter=>{
+          const chapter = subject.chapters.find(c=>c.id===savedChapter.id);
+          if(!chapter) return;
+          savedChapter.topics.forEach(savedTopic=>{
+            const topic = chapter.topics.find(t=>t.id===savedTopic.id);
+            if(topic && Array.isArray(savedTopic.questions)) topic.questions = savedTopic.questions;
+          });
+        });
+      });
+    }
+  }catch(e){ console.warn('Local study data could not be restored:',e); }
+  DB.completedTopics = DB.completedTopics || [];
+  DB.bookmarkedTopics = DB.bookmarkedTopics || [];
+  DB.mcqAttempts = DB.mcqAttempts || [];
+}
+function saveLocalState(){
+  try{
+    localStorage.setItem(LOCAL_STATE_KEY, JSON.stringify({
+      db: DB,
+      subjects: SUBJECTS.map(s=>({id:s.id,chapters:s.chapters.map(c=>({id:c.id,topics:c.topics.map(t=>({id:t.id,questions:t.questions}))}))}))
+    }));
+  }catch(e){ console.warn('Local storage is full; some recent changes may not persist.',e); }
+}
+restoreLocalState();
 
 let view = 'dashboard';
 let activeSubjId = null, activeChapId = null, activeTopicId = null;
@@ -1263,6 +1093,7 @@ let lecturesActiveSubj = SUBJECTS[0].id;
 let notesActiveSubj = SUBJECTS[0].id;
 let sidebarOpen = false;
 let testSession = null;
+try{ const active=JSON.parse(localStorage.getItem('alam-mdcat-active-test-v1')||'null'); if(active && Array.isArray(active.questions) && Array.isArray(active.answers)) testSession=active; }catch(e){}
 let mockSelectedSubjects = SUBJECTS.map(s=>s.id);
 let mockCount = 180;
 let pendingConfig = null; // {subjId, chapId, topicId, max, label}
@@ -1279,14 +1110,9 @@ function go(v, extra={}){
   window.scrollTo(0,0);
 }
 function toggleSidebar(force){ sidebarOpen = force!==undefined?force:!sidebarOpen; render(); }
-
 function render(){
+  saveLocalState();
   const app = document.getElementById('app');
-  if(!CURRENT_USER){
-    app.innerHTML = renderLoginScreen();
-    document.getElementById('overlay').classList.remove('show');
-    return;
-  }
   app.innerHTML = `${renderSidebar()}<div class="main">${renderTopbar()}<div class="content">${renderView()}</div></div>`;
   document.getElementById('overlay').classList.toggle('show', sidebarOpen);
 }
@@ -1301,18 +1127,13 @@ function renderSidebar(){
   const practice = [
     {id:'tests', label:'MCQ Tests', icon:'clipboard'},
     {id:'mock', label:'Mock Test Generator', icon:'target'},
-    {id:'doubt', label:'Live Doubt Session', icon:'chat'},
+    {id:'doubt', label:'Doubt Notebook', icon:'chat'},
     {id:'progress', label:'My Progress', icon:'chart'},
     {id:'resources', label:'Study Resources', icon:'layers'},
   ];
   const map = {subjectDetail:'subjects', testRunner:'tests', testResult:'tests', testConfig:'tests', chapterNotes:'subjects'};
   const cur = map[view] || view;
   const item = it => `<button class="nav-item ${cur===it.id?'active':''}" onclick="go('${it.id}')">${ic(it.icon)} ${it.label}</button>`;
-  const adminGroup = CURRENT_USER && CURRENT_USER.role==='admin' ? `
-    <div class="nav-label">Admin</div>
-    <div class="nav-group">
-      <button class="nav-item ${cur==='adminStudents'?'active':''}" onclick="go('adminStudents')">${ic('user')} Manage Students</button>
-    </div>` : '';
   return `
   <div class="sidebar ${sidebarOpen?'open':''}" id="sidebar">
     <div class="brand"><div class="mark">🎓</div><div class="name">Alam Creative<span>ACADEMY</span></div></div>
@@ -1320,11 +1141,9 @@ function renderSidebar(){
     <div class="nav-group">${learn.map(item).join('')}</div>
     <div class="nav-label">Practice &amp; Track</div>
     <div class="nav-group">${practice.map(item).join('')}</div>
-    ${adminGroup}
     <div class="nav-sep"></div>
     <div class="nav-group">
       <button class="nav-item" onclick="go('profile')">${ic('user')} Profile</button>
-      <button class="nav-item" onclick="doLogout()">${ic('logout')} Logout</button>
     </div>
   </div>`;
 }
@@ -1341,7 +1160,7 @@ function renderTopbar(){
       <div class="bell">${ic('bell')}<span class="dot">${DB.doubts.filter(d=>d.status==='Answered').length}</span></div>
       <div class="user-chip" style="cursor:pointer" onclick="go('profile')">
         <div class="avatar">${initials(u.name)}</div>
-        <div><div class="u-name">${u.name}</div><div class="u-role">${u.role==='admin'?'Administrator':u.studentId}</div></div>
+        <div><div class="u-name">${u.name}</div><div class="u-role">Public visitor</div></div>
       </div>
     </div>
   </div>`;
@@ -1363,7 +1182,6 @@ function renderView(){
     case 'progress': return renderProgress();
     case 'resources': return renderResources();
     case 'profile': return renderProfile();
-    case 'adminStudents': return renderAdminStudents();
     default: return renderDashboard();
   }
 }
@@ -1372,8 +1190,8 @@ function renderView(){
    DASHBOARD
 ========================================================= */
 function overallPct(){
-  const parts=[DB.lecturesWatched/DB.lecturesTotal, DB.notesDownloaded/DB.notesTotal, DB.testsAttempted/DB.testsTotal, DB.doubtsAsked/DB.doubtsTotal];
-  return Math.round(parts.reduce((a,b)=>a+b,0)/parts.length*100);
+  const total=SUBJECTS.reduce((n,s)=>n+s.chapters.reduce((m,c)=>m+c.topics.length,0),0);
+  return total?Math.round((DB.completedTopics||[]).length/total*100):0;
 }
 function donutSVG(pct, size=150, stroke=14, color='var(--gold)'){
   const r=(size-stroke)/2, c=2*Math.PI*r, off=c*(1-pct/100);
@@ -1381,7 +1199,7 @@ function donutSVG(pct, size=150, stroke=14, color='var(--gold)'){
 }
 function subjectWeakness(subjId){
   const hist = DB.testHistory.filter(h=>h.subjId===subjId);
-  if(hist.length===0){ const fallback={bio:65,chem:50,phy:40,eng:55,lr:70}; return fallback[subjId]; }
+  if(hist.length===0) return 0;
   const avg = hist.reduce((a,h)=>a+(h.score/h.total*100),0)/hist.length;
   return Math.round(avg);
 }
@@ -1413,8 +1231,8 @@ function renderDashboard(){
         </div>
       </div>
       <div class="card card-pad" style="margin-top:18px;">
-        <div class="section-head"><h2>Continue Learning</h2><a class="view-all" href="#" onclick="go('lectures');return false;">View All</a></div>
-        ${DB.lectures.slice(0,4).map((l,i)=>{
+        <div class="section-head"><h2>Recently Added Lectures</h2><a class="view-all" href="#" onclick="go('lectures');return false;">View All</a></div>
+        ${DB.lectures.length===0?'<div class="empty-state">No lecture videos saved on this device yet. Open Lectures to add your own files.</div>':DB.lectures.slice(0,4).map((l,i)=>{
           const s = SUBJECTS.find(x=>x.id===l.subj); const pcts=[70,40,30,20];
           return `<div class="lecture-row">
             <div class="lecture-thumb" style="background:${s.color}">${ic('video')}</div>
@@ -1439,10 +1257,10 @@ function renderDashboard(){
       <div class="card card-pad side-card">
         <div class="section-head"><h2>Your Progress</h2><a class="view-all" href="#" onclick="go('progress');return false;">View Details</a></div>
         <div class="progress-ring">${donutSVG(pct)}<div class="pct"><b>${pct}%</b><span>Overall Progress</span></div></div>
-        <div class="stat-row"><span class="lbl">${ic('book')} Lectures Watched</span><span class="val">${DB.lecturesWatched} / ${DB.lecturesTotal}</span></div>
-        <div class="stat-row"><span class="lbl">${ic('notes')} Notes Downloaded</span><span class="val">${DB.notesDownloaded} / ${DB.notesTotal}</span></div>
-        <div class="stat-row"><span class="lbl">${ic('clipboard')} Tests Attempted</span><span class="val">${DB.testsAttempted} / ${DB.testsTotal}</span></div>
-        <div class="stat-row"><span class="lbl">${ic('chat')} Doubt Questions</span><span class="val">${DB.doubtsAsked} / ${DB.doubtsTotal}</span></div>
+        <div class="stat-row"><span class="lbl">${ic('book')} Lecture Files Downloaded</span><span class="val">${DB.lecturesWatched} / ${DB.lecturesTotal}</span></div>
+        <div class="stat-row"><span class="lbl">${ic('notes')} Notes Files Downloaded</span><span class="val">${DB.notesDownloaded} / ${DB.notesTotal}</span></div>
+        <div class="stat-row"><span class="lbl">${ic('clipboard')} Tests Attempted</span><span class="val">${DB.testsAttempted}</span></div>
+        <div class="stat-row"><span class="lbl">${ic('chat')} Doubt Questions</span><span class="val">${DB.doubtsAsked}</span></div>
       </div>
       <div class="card card-pad side-card">
         <div class="section-head"><h2>Mock Test Generator</h2></div>
@@ -1523,6 +1341,7 @@ function importMCQs(evt, subjId, chapId, topicId){
     if(parsed.length===0){ alert('No valid MCQs found. Please check the format.'); return; }
     const {t} = findTopic(subjId,chapId,topicId);
     t.questions.push(...parsed);
+    saveLocalState();
     alert(parsed.length+' MCQs added to "'+t.name+'". Total now: '+t.questions.length);
     render();
   };
@@ -1533,12 +1352,19 @@ function renderChapterNotes(){
   const {s,c,t} = findTopic(activeSubjId, activeChapId, activeTopicId);
   return `
   <div class="breadcrumb"><a href="#" onclick="go('subjects');return false;">My Courses</a> / <a href="#" onclick="go('subjectDetail',{subjId:'${s.id}'});return false;">${s.name}</a> / ${c.name} / ${t.name}</div>
-  <div class="subj-hero"><div class="big-ic" style="background:${s.bg}">${s.emoji}</div><div><h1 style="margin:0;font-size:20px;">${t.name}</h1><p style="margin:3px 0 0;color:var(--sub);font-size:13px;">${c.name} · Premium revision notes · ${t.questions.length} MCQs in bank</p></div></div>
+  <div class="subj-hero"><div class="big-ic" style="background:${s.bg}">${s.emoji}</div><div><h1 style="margin:0;font-size:20px;">${t.name}</h1><p style="margin:3px 0 0;color:var(--sub);font-size:13px;">${c.name} · Revision notes · ${t.questions.length} MCQs in bank</p></div></div>
   <div class="notes-box"><ul>${t.notes.length? t.notes.map(n=>`<li>${n}</li>`).join(''): '<li>No notes added yet for this topic.</li>'}</ul></div>
   <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
     <button class="btn btn-blue" ${t.questions.length===0?'disabled':''} onclick="openTestConfig('${s.id}','${c.id}','${t.id}')">${ic('clock')} Take a Test on this Topic</button>
+    <button class="btn btn-outline" onclick="toggleBookmark('${t.id}')">${DB.bookmarkedTopics.includes(t.id)?'★ Bookmarked':'☆ Bookmark Topic'}</button>
     <button class="btn btn-outline" onclick="go('subjectDetail',{subjId:'${s.id}'})">Back to Chapters</button>
-  </div>`;
+  </div>
+  ${DB.bookmarkedTopics.includes(t.id)?'<p style="font-size:12px;color:var(--green);margin-top:10px;">Saved to your local revision bookmarks.</p>':''}`;
+}
+function toggleBookmark(topicId){
+  DB.bookmarkedTopics = DB.bookmarkedTopics || [];
+  DB.bookmarkedTopics = DB.bookmarkedTopics.includes(topicId)?DB.bookmarkedTopics.filter(id=>id!==topicId):[...DB.bookmarkedTopics,topicId];
+  saveLocalState(); render();
 }
 
 /* =========================================================
@@ -1569,193 +1395,101 @@ function renderNotesFilesPage(){
 }
 function setNotesSubj(id){ notesActiveSubj = id; render(); }
 
-// Files now live on the backend (see server.js -> /api/files). FILES_CACHE
-// holds the last-fetched list per category; null means "not loaded yet".
+/* =========================================================
+   LOCAL FILE STORAGE (IndexedDB) — no upload server required
+========================================================= */
 let FILES_CACHE = { lecture: null, notes: null };
 const CATEGORY_OF = { lectures: 'lecture', notes: 'notes' };
-
-// ---------------------------------------------------------------------
-// BUG FIX (Android file picker "select file -> nothing happens"):
-// The old code put <input type="file"> INSIDE the reactive #app tree that
-// render() fully replaces via innerHTML on every state change (including
-// background fetches completing, like the file-list load that fires the
-// moment this page opens). On a slow/flaky mobile connection, that
-// background fetch can resolve WHILE the native Android file picker is
-// still open, triggering render() and destroying the very <input> the
-// picker's 'change' event was about to fire on -- so the event has
-// nowhere to land and nothing happens, with no error at all.
-//
-// Fix: a single <input type="file"> lives OUTSIDE #app (appended directly
-// to <body>, created once below, never touched by render()), so no amount
-// of re-rendering elsewhere on the page can ever destroy it mid-picker.
-// ---------------------------------------------------------------------
-const ACCEPT_ATTR = '.pdf,application/pdf,.doc,application/msword,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.ppt,application/vnd.ms-powerpoint,.pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation,.xls,application/vnd.ms-excel,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,.jpg,.jpeg,image/jpeg,.png,image/png,.txt,text/plain';
+const ACCEPT_ATTR = '.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png,.txt,.mp4,.webm';
 const globalFileInput = document.createElement('input');
-globalFileInput.type = 'file';
-globalFileInput.accept = ACCEPT_ATTR;
-globalFileInput.style.position = 'fixed';
-globalFileInput.style.left = '-9999px';
-globalFileInput.setAttribute('aria-hidden', 'true');
-document.body.appendChild(globalFileInput);
-
-let UPLOAD_CTX = null; // {subjId, category, chapter} captured at the moment "Choose File" is tapped
-// UPLOAD_UI holds all upload state declaratively per category, so it survives
-// any number of re-renders (it's plain JS data, not a DOM reference).
-let UPLOAD_UI = {
-  lecture: { status: 'idle', file: null, chapter: null, pct: 0, message: '' },
-  notes:   { status: 'idle', file: null, chapter: null, pct: 0, message: '' },
+globalFileInput.type='file'; globalFileInput.accept=ACCEPT_ATTR;
+globalFileInput.style.position='fixed'; globalFileInput.style.left='-9999px';
+globalFileInput.setAttribute('aria-hidden','true'); document.body.appendChild(globalFileInput);
+let UPLOAD_CTX=null;
+let UPLOAD_UI={
+  lecture:{status:'idle',file:null,chapter:null,pct:0,message:''},
+  notes:{status:'idle',file:null,chapter:null,pct:0,message:''}
 };
-
-function triggerFileUpload(subjId, category){
-  const chapSel = document.getElementById('chapSelect_'+category);
-  const chapter = chapSel ? chapSel.value : null;
-  UPLOAD_CTX = { subjId, category, chapter };
-  globalFileInput.value = ''; // allow re-selecting the same file twice in a row
-  globalFileInput.click();
+const LOCAL_FILES_DB='alam-mdcat-files-v1';
+function openFilesDB(){
+  return new Promise((resolve,reject)=>{
+    if(!('indexedDB' in window)){reject(new Error('IndexedDB is unavailable in this browser.'));return;}
+    const req=indexedDB.open(LOCAL_FILES_DB,1);
+    req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains('files')) db.createObjectStore('files',{keyPath:'id',autoIncrement:true});};
+    req.onsuccess=()=>resolve(req.result); req.onerror=()=>reject(req.error);
+  });
 }
-globalFileInput.addEventListener('change', function(evt){
-  const file = evt.target.files && evt.target.files[0];
-  if(!file || !UPLOAD_CTX) return;
-  const { category } = UPLOAD_CTX;
-  UPLOAD_UI[category] = { status: 'ready', file, chapter: UPLOAD_CTX.chapter, pct: 0, message: '' };
-  render();
-});
-function cancelPendingUpload(category){
-  UPLOAD_UI[category] = { status: 'idle', file: null, chapter: null, pct: 0, message: '' };
-  render();
+async function fileStore(mode, action){
+  const db=await openFilesDB();
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction('files',mode), store=tx.objectStore('files');
+    let req;
+    if(action.type==='all') req=store.getAll();
+    else if(action.type==='add') req=store.add(action.value);
+    else if(action.type==='delete') req=store.delete(action.id);
+    else if(action.type==='get') req=store.get(action.id);
+    req.onsuccess=()=>resolve(req.result); req.onerror=()=>reject(req.error);
+    tx.oncomplete=()=>db.close(); tx.onerror=()=>reject(tx.error);
+  });
 }
-function confirmUpload(category){
-  const ui = UPLOAD_UI[category];
-  if(!ui || !ui.file || !UPLOAD_CTX) return;
-  const { subjId } = UPLOAD_CTX;
-  const s = SUBJECTS.find(x=>x.id===subjId);
-
-  const fd = new FormData();
-  fd.append('file', ui.file);
-  fd.append('category', category);
-  fd.append('subject', s.name);
-  fd.append('chapter', ui.chapter || s.chapters[0].name);
-
-  UPLOAD_UI[category] = { ...ui, status:'uploading', pct:0, message:'' };
-  render();
-
-  const xhr = new XMLHttpRequest();
-  xhr.open('POST', API+'/files');
-  xhr.withCredentials = true;
-  if(CSRF_TOKEN) xhr.setRequestHeader('X-CSRF-Token', CSRF_TOKEN);
-  // Deliberately not setting Content-Type: the browser must generate the
-  // multipart boundary itself. Setting it manually on a FormData body is a
-  // classic cause of broken/unparseable uploads.
-
-  xhr.upload.onprogress = function(e){
-    if(!e.lengthComputable) return;
-    const pct = Math.round((e.loaded / e.total) * 100);
-    UPLOAD_UI[category].pct = pct;
-    // Fast path: update the bar directly so rapid progress events don't
-    // thrash a full app re-render; renderFileManager will still reflect
-    // the correct percentage if a re-render happens for any other reason.
-    const bar = document.getElementById('uploadProgressFill_'+category);
-    if(bar) bar.style.width = pct+'%';
-  };
-  xhr.onload = function(){
-    let data = {};
-    try{ data = JSON.parse(xhr.responseText||'{}'); }catch(e){}
-    if(xhr.status>=200 && xhr.status<300){
-      UPLOAD_UI[category] = { status:'success', file:null, chapter:null, pct:100, message:'Uploaded successfully.' };
-      FILES_CACHE[category] = null;
-      loadFiles(category); // re-fetches and calls render()
-    } else {
-      if(xhr.status===401){ CURRENT_USER=null; CSRF_TOKEN=null; render(); return; }
-      UPLOAD_UI[category] = { status:'error', file:ui.file, chapter:ui.chapter, pct:0, message: data.error || `Upload failed (status ${xhr.status}).` };
-      render();
-    }
-  };
-  xhr.onerror = function(){
-    UPLOAD_UI[category] = { status:'error', file:ui.file, chapter:ui.chapter, pct:0, message:'Network error during upload. Check your connection and try again.' };
-    render();
-  };
-  xhr.send(fd);
-}
-
 async function loadFiles(category){
-  try{
-    const res = await apiFetch('/files?category='+category);
-    const data = await res.json();
-    FILES_CACHE[category] = res.ok ? data.files : [];
-  }catch(e){ FILES_CACHE[category] = []; }
+  try{ FILES_CACHE[category]=(await fileStore('readonly',{type:'all'})).filter(f=>f.category===category); if(category==='lecture') DB.lecturesTotal=FILES_CACHE[category].length; if(category==='notes') DB.notesTotal=FILES_CACHE[category].length; saveLocalState(); }
+  catch(e){ FILES_CACHE[category]=[]; console.warn('Local file storage unavailable:',e); }
   render();
 }
-function renderFileManager(s, kindPage){
-  const category = CATEGORY_OF[kindPage];
-  if(FILES_CACHE[category]===null) loadFiles(category);
-  const all = FILES_CACHE[category] || [];
-  const list = all.filter(f=>f.subject===s.name);
-  const label = category==='lecture' ? 'lecture file' : 'notes file';
-  const chapOptions = s.chapters.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');
-  const ui = UPLOAD_UI[category];
-
-  let uploadBoxInner;
-  if(ui.status==='ready'){
-    uploadBoxInner = `
-      <div style="text-align:left;max-width:380px;margin:0 auto;">
-        <div style="display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--line);border-radius:11px;background:#fff;margin-bottom:12px;">
-          <div class="fic" style="background:${s.bg};color:${s.color}">${ic('file')}</div>
-          <div style="flex:1;min-width:0;">
-            <div style="font-weight:700;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${ui.file.name}</div>
-            <div style="font-size:11.5px;color:var(--sub);">${fmtBytes(ui.file.size)} · ${ui.chapter||s.chapters[0].name}</div>
-          </div>
-        </div>
-        <div style="display:flex;gap:8px;">
-          <button class="btn btn-gold" style="flex:1;justify-content:center;" onclick="confirmUpload('${category}')">${ic('upload')} Upload Now</button>
-          <button class="btn btn-outline" onclick="cancelPendingUpload('${category}')">Cancel</button>
-        </div>
-      </div>`;
-  } else if(ui.status==='uploading'){
-    uploadBoxInner = `
-      <div style="text-align:left;max-width:380px;margin:0 auto;">
-        <div style="font-weight:700;font-size:13px;margin-bottom:8px;">Uploading ${ui.file?ui.file.name:''}…</div>
-        <div class="qprogress-track"><div id="uploadProgressFill_${category}" class="qprogress-fill" style="width:${ui.pct}%"></div></div>
-        <div style="font-size:11.5px;color:var(--sub);margin-top:6px;">${ui.pct}%</div>
-      </div>`;
-  } else {
-    uploadBoxInner = `
-      <div style="max-width:340px;margin:0 auto;text-align:left;">
-        <select id="chapSelect_${category}" style="width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:9px;margin-bottom:10px;">${chapOptions}</select>
-      </div>
-      <button class="btn btn-navy" onclick="triggerFileUpload('${s.id}','${category}')">${ic('upload')} Choose File</button>`;
-  }
-
-  const flash = (ui.status==='success'||ui.status==='error') ? `
-    <div style="display:block;font-size:12px;font-weight:600;margin-top:12px;padding:8px 12px;border-radius:9px;max-width:380px;margin-left:auto;margin-right:auto;
-      background:${ui.status==='success'?'var(--green-bg)':'var(--red-bg)'};color:${ui.status==='success'?'var(--green)':'var(--red)'};">
-      ${ui.message}
-    </div>` : '';
-
-  return `
-  <div class="upload-box">
-    ${ic('upload')}
-    <p style="margin:8px 0 12px;">Add a new ${label} for <b>${s.name}</b></p>
-    <p style="margin:0 0 12px;font-size:11.5px;color:var(--sub);">Accepted: PDF, DOC/DOCX, PPT/PPTX, XLS/XLSX, JPG/PNG, TXT — up to 25 MB. Works from Android's file picker and Windows/Mac file browsers.</p>
-    ${uploadBoxInner}
-    ${flash}
-  </div>
-  <div>
-    ${FILES_CACHE[category]===null ? `<div class="empty-state">Loading…</div>` :
-      list.length===0?`<div class="empty-state"><div class="ic">📂</div>No ${label}s uploaded yet for ${s.name}.</div>`:
-      list.map(f=>`<div class="file-row">
-        <div class="fic" style="background:${s.bg};color:${s.color}">${ic('file')}</div>
-        <div class="finfo"><h4>${f.name}</h4><p>${f.chapter||''} · ${fmtBytes(f.sizeBytes)} · ${fmtDate(f.uploadedAt)} · by ${f.uploadedBy.name}</p></div>
-        <a class="icon-btn" style="text-decoration:none;" href="${API}/files/${f.id}/download" title="Download">${ic('upload')}</a>
-        ${(CURRENT_USER.role==='admin' || f.uploadedBy.studentId===CURRENT_USER.studentId) ? `<button class="icon-btn" onclick="deleteFile('${category}',${f.id})" title="Delete">${ic('trash')}</button>` : ''}
-      </div>`).join('')}
-  </div>`;
+function triggerFileUpload(subjId,category){
+  const chapSel=document.getElementById('chapSelect_'+category);
+  UPLOAD_CTX={subjId,category,chapter:chapSel?chapSel.value:null};
+  globalFileInput.value=''; globalFileInput.click();
 }
-async function deleteFile(category, id){
+globalFileInput.addEventListener('change',evt=>{
+  const file=evt.target.files&&evt.target.files[0]; if(!file||!UPLOAD_CTX)return;
+  if(file.size>25*1024*1024){alert('File exceeds the 25 MB limit.');return;}
+  const {category}=UPLOAD_CTX;
+  UPLOAD_UI[category]={status:'ready',file,chapter:UPLOAD_CTX.chapter,pct:0,message:''}; render();
+});
+function cancelPendingUpload(category){UPLOAD_UI[category]={status:'idle',file:null,chapter:null,pct:0,message:''};render();}
+async function confirmUpload(category){
+  const ui=UPLOAD_UI[category]; if(!ui||!ui.file||!UPLOAD_CTX)return;
+  const s=SUBJECTS.find(x=>x.id===UPLOAD_CTX.subjId);
+  UPLOAD_UI[category]={...ui,status:'uploading',pct:40};render();
   try{
-    const res = await apiFetch('/files/'+id, {method:'DELETE'});
-    if(res.ok){ FILES_CACHE[category]=null; await loadFiles(category); }
-    else { const data = await res.json(); alert(data.error||'Could not delete file.'); }
-  }catch(e){ alert('Network error.'); }
+    await fileStore('readwrite',{type:'add',value:{category,subject:s.name,chapter:ui.chapter||s.chapters[0].name,name:ui.file.name,sizeBytes:ui.file.size,mime:ui.file.type,uploadedAt:new Date().toISOString(),blob:ui.file}});
+    UPLOAD_UI[category]={status:'success',file:null,chapter:null,pct:100,message:'Saved on this device.'};
+    FILES_CACHE[category]=null; await loadFiles(category);
+  }catch(e){UPLOAD_UI[category]={status:'error',file:ui.file,chapter:ui.chapter,pct:0,message:'Could not save this file in browser storage. Check available device storage.'};render();}
+}
+function renderFileManager(s,kindPage){
+  const category=CATEGORY_OF[kindPage];
+  if(FILES_CACHE[category]===null) loadFiles(category);
+  const all=FILES_CACHE[category]||[], list=all.filter(f=>f.subject===s.name);
+  const label=category==='lecture'?'lecture file':'notes file';
+  const chapOptions=s.chapters.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');
+  const ui=UPLOAD_UI[category]; let uploadBoxInner;
+  if(ui.status==='ready'){
+    uploadBoxInner=`<div style="text-align:left;max-width:380px;margin:0 auto;">
+      <div style="padding:12px;border:1px solid var(--line);border-radius:11px;background:#fff;margin-bottom:12px;">
+      <b style="font-size:13px;">${ui.file.name}</b><div style="font-size:11.5px;color:var(--sub);">${fmtBytes(ui.file.size)} · ${ui.chapter||s.chapters[0].name}</div></div>
+      <div style="display:flex;gap:8px;"><button class="btn btn-gold" style="flex:1;justify-content:center;" onclick="confirmUpload('${category}')">Save on This Device</button><button class="btn btn-outline" onclick="cancelPendingUpload('${category}')">Cancel</button></div></div>`;
+  }else if(ui.status==='uploading'){
+    uploadBoxInner=`<div style="font-weight:700;font-size:13px;">Saving file in browser storage…</div><div class="qprogress-track"><div class="qprogress-fill" style="width:40%"></div></div>`;
+  }else{
+    uploadBoxInner=`<div style="max-width:340px;margin:0 auto;text-align:left;"><select id="chapSelect_${category}" style="width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:9px;margin-bottom:10px;">${chapOptions}</select></div><button class="btn btn-navy" onclick="triggerFileUpload('${s.id}','${category}')">${ic('upload')} Choose File</button>`;
+  }
+  const flash=(ui.status==='success'||ui.status==='error')?`<div style="font-size:12px;font-weight:600;margin-top:12px;padding:8px 12px;border-radius:9px;background:${ui.status==='success'?'var(--green-bg)':'var(--red-bg)'};color:${ui.status==='success'?'var(--green)':'var(--red)'};">${ui.message}</div>`:'';
+  return `<div class="upload-box">${ic('upload')}<p style="margin:8px 0 12px;">Add a new ${label} for <b>${s.name}</b></p>
+    <p style="margin:0 0 12px;font-size:11.5px;color:var(--sub);">Files up to 25 MB are saved locally in this browser. They are not uploaded or shared with other students.</p>${uploadBoxInner}${flash}</div>
+    <div>${FILES_CACHE[category]===null?`<div class="empty-state">Loading local files…</div>`:list.length===0?`<div class="empty-state"><div class="ic">📂</div>No ${label}s saved for ${s.name} yet.</div>`:
+    list.map(f=>`<div class="file-row"><div class="fic" style="background:${s.bg};color:${s.color}">${ic('file')}</div><div class="finfo"><h4>${f.name}</h4><p>${f.chapter||''} · ${fmtBytes(f.sizeBytes)} · ${fmtDate(f.uploadedAt)} · Stored on this device</p></div><button class="icon-btn" onclick="downloadLocalFile(${f.id})" title="Download">${ic('upload')}</button><button class="icon-btn" onclick="deleteFile('${category}',${f.id})" title="Delete">${ic('trash')}</button></div>`).join('')}</div>`;
+}
+async function downloadLocalFile(id){
+  try{const f=await fileStore('readonly',{type:'get',id});if(!f)return;if(f.category==='lecture')DB.lecturesWatched++;if(f.category==='notes')DB.notesDownloaded++;saveLocalState();const url=URL.createObjectURL(f.blob);const a=document.createElement('a');a.href=url;a.download=f.name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+  catch(e){alert('Could not read this local file.');}
+}
+async function deleteFile(category,id){
+  if(!confirm('Delete this locally stored file?'))return;
+  try{await fileStore('readwrite',{type:'delete',id});FILES_CACHE[category]=null;await loadFiles(category);}
+  catch(e){alert('Could not delete the local file.');}
 }
 
 /* =========================================================
@@ -1896,6 +1630,7 @@ function runTimer(){
   window.__timerHandle = setInterval(()=>{
     if(!testSession) { clearInterval(window.__timerHandle); return; }
     testSession.timeLeft--;
+    try{localStorage.setItem('alam-mdcat-active-test-v1',JSON.stringify(testSession));}catch(e){}
     if(testSession.timeLeft<=0){
       if(testSession.answers[testSession.idx]===null) testSession.answers[testSession.idx] = -1;
       nextQuestion(true);
@@ -1912,7 +1647,7 @@ function updateTimerDisplay(){
   badge.classList.toggle('low', testSession.timeLeft<=10);
   if(track){ track.style.width = (testSession.timeLeft/QUESTION_TIME*100)+'%'; track.style.background = testSession.timeLeft<=10?'var(--red)':'var(--gold)'; }
 }
-function selectOption(i){ if(!testSession) return; testSession.answers[testSession.idx]=i; render(); }
+function selectOption(i){ if(!testSession) return; testSession.answers[testSession.idx]=i; try{localStorage.setItem('alam-mdcat-active-test-v1',JSON.stringify(testSession));}catch(e){} render(); }
 function nextQuestion(auto=false){
   if(!testSession) return;
   if(testSession.idx < testSession.questions.length-1){ testSession.idx++; testSession.timeLeft=QUESTION_TIME; render(); }
@@ -1922,10 +1657,17 @@ function prevQuestion(){ if(!testSession || testSession.idx===0) return; testSes
 
 function finishTest(){
   clearInterval(window.__timerHandle);
+  try{localStorage.removeItem('alam-mdcat-active-test-v1');}catch(e){}
   const qs = testSession.questions, ans = testSession.answers;
   const correct = ans.filter((a,i)=>a===qs[i].ans).length;
   const skipped = ans.filter(a=>a===-1||a===null).length;
   const wrong = qs.length - correct - skipped;
+  DB.mcqAttempts = DB.mcqAttempts || [];
+  qs.forEach((q,i)=>DB.mcqAttempts.unshift({
+    question:q.q, options:q.opts, correctAnswer:q.ans, selectedAnswer:ans[i],
+    isCorrect:ans[i]===q.ans, subject:q.subjName, topic:q.topicName||q.chapName,
+    attemptedAt:new Date().toISOString()
+  }));
   testSession.result = {correct, wrong, skipped, total:qs.length};
 
   const bySubj = {};
@@ -1935,14 +1677,19 @@ function finishTest(){
     if(ans[i]===q.ans) bySubj[q.subjId].correct++;
   });
   Object.values(bySubj).forEach(b=>{
-    DB.testHistory.unshift({subjId:b.subjId, subjName:b.subjName, chapId:b.chapId, topicName:b.chapName, score:b.correct, total:b.total, date:'Just now'});
+    DB.testHistory.unshift({subjId:b.subjId, subjName:b.subjName, chapId:b.chapId, topicName:b.chapName, score:b.correct, total:b.total, date:new Date().toLocaleString()});
   });
+  if(!testSession.isMock && pendingConfig && pendingConfig.topicId){
+    if(!DB.completedTopics.includes(pendingConfig.topicId)) DB.completedTopics.push(pendingConfig.topicId);
+  }
   DB.testsAttempted++;
+  saveLocalState();
   go('testResult');
 }
 
 function renderTestRunner(){
   if(!testSession) return renderTestsHome();
+  try{localStorage.setItem('alam-mdcat-active-test-v1',JSON.stringify(testSession));}catch(e){}
   const t = testSession, q = t.questions[t.idx], chosen = t.answers[t.idx];
   const pct = Math.round((t.idx)/t.questions.length*100);
   setTimeout(updateTimerDisplay,0);
@@ -2013,7 +1760,7 @@ function renderTestResult(){
 ========================================================= */
 function renderDoubtSession(){
   return `
-  <div class="page-head"><div><h1>Live Doubt Session</h1><p>Ask a question about any subject and get help from a mentor.</p></div></div>
+  <div class="page-head"><div><h1>Doubt Notebook</h1><p>Save questions for your own revision. Mentor replies require an external service.</p></div></div>
   <div class="dash-grid" style="grid-template-columns:1fr 1.3fr;">
     <div class="card card-pad"><div class="section-head"><h2>Ask a New Doubt</h2></div>
       <div>
@@ -2036,6 +1783,7 @@ function submitDoubt(evt){
   if(!text) return;
   DB.doubts.unshift({id:DB.nextId++, subj, q:text, time:'Just now', status:'Pending'});
   DB.doubtsAsked++;
+  saveLocalState();
   render();
 }
 
@@ -2050,10 +1798,10 @@ function renderProgress(){
     <div class="card card-pad" style="text-align:center;">
       <div class="progress-ring">${donutSVG(pct,170,16)}<div class="pct"><b>${pct}%</b><span>Overall Progress</span></div></div>
       <div style="text-align:left;margin-top:10px;">
-        <div class="stat-row"><span class="lbl">${ic('book')} Lectures Watched</span><span class="val">${DB.lecturesWatched} / ${DB.lecturesTotal}</span></div>
-        <div class="stat-row"><span class="lbl">${ic('notes')} Notes Downloaded</span><span class="val">${DB.notesDownloaded} / ${DB.notesTotal}</span></div>
-        <div class="stat-row"><span class="lbl">${ic('clipboard')} Tests Attempted</span><span class="val">${DB.testsAttempted} / ${DB.testsTotal}</span></div>
-        <div class="stat-row"><span class="lbl">${ic('chat')} Doubt Questions</span><span class="val">${DB.doubtsAsked} / ${DB.doubtsTotal}</span></div>
+        <div class="stat-row"><span class="lbl">${ic('book')} Lecture Files Downloaded</span><span class="val">${DB.lecturesWatched} / ${DB.lecturesTotal}</span></div>
+        <div class="stat-row"><span class="lbl">${ic('notes')} Notes Files Downloaded</span><span class="val">${DB.notesDownloaded} / ${DB.notesTotal}</span></div>
+        <div class="stat-row"><span class="lbl">${ic('clipboard')} Tests Attempted</span><span class="val">${DB.testsAttempted}</span></div>
+        <div class="stat-row"><span class="lbl">${ic('chat')} Doubt Questions</span><span class="val">${DB.doubtsAsked}</span></div>
       </div>
     </div>
     <div class="card card-pad">
@@ -2074,260 +1822,36 @@ function renderProgress(){
 ========================================================= */
 function renderResources(){
   return `<div class="page-head"><div><h1>Study Resources</h1><p>Curated MDCAT prep material.</p></div></div>
-  <div class="card card-pad"><div class="empty-state"><div class="ic">📚</div>Past papers, formula sheets and revision guides will appear here once uploaded by your instructors.</div></div>`;
+  <div class="card card-pad"><div class="empty-state"><div class="ic">📚</div>Use the Notes and Lectures sections to store your own study files in this browser. Official external resources are not connected in this static build.</div></div>`;
 }
 function renderProfile(){
-  const u = CURRENT_USER;
-  return `<div class="page-head"><div><h1>Profile</h1><p>Your account details.</p></div></div>
-  <div class="dash-grid" style="grid-template-columns:1fr 1fr;">
-  <div class="card card-pad">
+  return `<div class="page-head"><div><h1>Study Profile</h1><p>Your learning activity is stored locally in this browser.</p></div></div>
+  <div class="card card-pad" style="max-width:680px;">
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
-      <div class="avatar" style="width:56px;height:56px;font-size:20px;">${initials(u.name)}</div>
-      <div><h3 style="margin:0;">${u.name}</h3><p style="margin:2px 0 0;color:var(--sub);font-size:13px;">${u.role==='admin'?'Administrator':'MDCAT Student'}</p></div>
+      <div class="avatar" style="width:56px;height:56px;font-size:20px;">S</div>
+      <div><h3 style="margin:0;">Local Student</h3><p style="margin:2px 0 0;color:var(--sub);font-size:13px;">Guest access · No account required</p></div>
     </div>
-    ${u.role!=='admin' ? `<div style="margin-bottom:14px;"><span class="id-badge">${ic('user')} ${u.studentId}</span></div>` : ''}
-    <div class="stat-row"><span class="lbl">${u.role==='admin'?'Admin ID':'Student ID'}</span><span class="val">${u.studentId}</span></div>
-    <div class="stat-row"><span class="lbl">Email</span><span class="val">${u.email||'—'}</span></div>
-    <div class="stat-row"><span class="lbl">Member Since</span><span class="val">${fmtDate(u.createdAt)}</span></div>
-    ${u.role!=='admin' ? `<div class="stat-row"><span class="lbl">Account Status</span><span class="val"><span class="pill pill-green">${u.status}</span></span></div>` : ''}
-    ${u.role!=='admin' ? `
+    <div class="stat-row"><span class="lbl">Access</span><span class="val">Public</span></div>
+    <div class="stat-row"><span class="lbl">Storage</span><span class="val">This browser / device</span></div>
     <div class="stat-row"><span class="lbl">Overall Progress</span><span class="val">${overallPct()}%</span></div>
     <div class="stat-row"><span class="lbl">Tests Attempted</span><span class="val">${DB.testsAttempted}</span></div>
-    <div class="stat-row"><span class="lbl">Doubts Asked</span><span class="val">${DB.doubtsAsked}</span></div>` : ''}
-  </div>
-  <div class="card card-pad">
-    <div class="section-head"><h2>Change Password</h2></div>
-    <div id="pwMsg" style="display:none;font-size:12.5px;font-weight:600;margin:-6px 0 12px;padding:9px 12px;border-radius:9px;"></div>
-    <div>
-      <label>Current Password</label>
-      <input type="password" id="pwCurrent" required autocomplete="current-password">
-      <label>New Password (min. 8 characters)</label>
-      <input type="password" id="pwNew" required minlength="8" autocomplete="new-password" onkeydown="if(event.key==='Enter')handleChangePassword(event)">
-      <button class="btn btn-navy" type="button" onclick="handleChangePassword(event)" style="width:100%;justify-content:center;">Update Password</button>
-    </div>
-  </div>
+    <div class="stat-row"><span class="lbl">Doubt Questions</span><span class="val">${DB.doubts.length}</span></div>
+    <p style="font-size:12px;color:var(--sub);line-height:1.6;margin-top:16px;">Your personal progress is not uploaded to a server and will not automatically sync between devices. Clearing this browser's site data may erase it.</p>
+    <button class="btn btn-outline" onclick="exportStudyData()">Export My Study Data</button>
+    <button class="btn btn-outline" onclick="clearStudyData()" style="margin-left:8px;">Reset Local Progress</button>
   </div>`;
 }
-async function handleChangePassword(evt){
-  evt.preventDefault();
-  const currentPassword = document.getElementById('pwCurrent').value;
-  const newPassword = document.getElementById('pwNew').value;
-  const msg = document.getElementById('pwMsg');
-  try{
-    const res = await apiFetch('/account/password', {method:'POST', body: JSON.stringify({currentPassword, newPassword})});
-    const data = await res.json();
-    msg.style.display='block';
-    if(res.ok){ msg.style.background='var(--green-bg)'; msg.style.color='var(--green)'; msg.textContent='Password updated.'; }
-    else { msg.style.background='var(--red-bg)'; msg.style.color='var(--red)'; msg.textContent=data.error||'Could not update password.'; }
-  }catch(e){ msg.style.display='block'; msg.style.background='var(--red-bg)'; msg.style.color='var(--red)'; msg.textContent='Network error.'; }
+function exportStudyData(){
+  const blob = new Blob([JSON.stringify({db:DB, exportedAt:new Date().toISOString()},null,2)],{type:'application/json'});
+  const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='mdcat-study-progress.json'; a.click(); URL.revokeObjectURL(url);
+}
+function clearStudyData(){
+  if(!confirm('Reset saved progress, test history, doubts and imported MCQs on this browser?')) return;
+  localStorage.removeItem(LOCAL_STATE_KEY); location.reload();
 }
 
-/* =========================================================
-   ADMIN — STUDENT MANAGEMENT
-========================================================= */
-let ADMIN_STUDENTS = null;
-let ADMIN_STU_QUERY = '';
-let EDITING_STU_ID = null;   // db id currently in inline-edit mode
-let RESETTING_STU_ID = null; // db id currently showing the reset-password field
-// BUG FIX (Student ID / success message not appearing after creating a
-// student): the old code wrote the success/error text directly onto a DOM
-// node via getElementById(...).textContent, then immediately kicked off
-// loadAdminStudents() to refresh the list. That refresh calls render(),
-// which replaces the ENTIRE #app subtree via innerHTML -- destroying the
-// very node the message was just written to, often within milliseconds.
-// Net effect: the "Pre-registered -- Student ID ACA-..." message flashed
-// and vanished before it could be read, and on a slow connection the form
-// could look like it never responded at all.
-// Fix: the flash message and the "submitting" state are now plain JS state
-// (ADMIN_STU_FLASH / ADMIN_STU_SUBMITTING), rendered as part of
-// renderAdminStudents()'s output, so they survive re-renders correctly
-// instead of being wiped by them. The form fields are similarly backed by
-// ADD_STU_FORM so they're preserved on error and deliberately cleared only
-// on success -- previously any re-render wiped user-typed input.
-let ADMIN_STU_FLASH = null;       // {type:'success'|'error', message}
-let ADMIN_STU_SUBMITTING = false;
-let ADD_STU_FORM = { name:'', studentId:'', password:'', email:'', phone:'' };
-
-async function loadAdminStudents(q){
-  try{
-    const qs = q ? ('?q='+encodeURIComponent(q)) : '';
-    const res = await apiFetch('/admin/students'+qs);
-    const data = await res.json();
-    ADMIN_STUDENTS = res.ok ? data.students : [];
-  }catch(e){ ADMIN_STUDENTS = []; }
-  render();
-}
-function statusPill(status){
-  const map = { PRE_REGISTERED:'pill-amber', ACTIVE:'pill-green', DISABLED:'pill-red' };
-  const label = { PRE_REGISTERED:'Pre-registered', ACTIVE:'Active', DISABLED:'Disabled' };
-  return `<span class="pill ${map[status]||'pill-blue'}">${label[status]||status}</span>`;
-}
-function renderAdminStudents(){
-  if(ADMIN_STUDENTS===null){ loadAdminStudents(ADMIN_STU_QUERY); }
-  const flash = ADMIN_STU_FLASH ? `
-    <div style="font-size:12.5px;font-weight:600;margin:-6px 0 12px;padding:9px 12px;border-radius:9px;
-      background:${ADMIN_STU_FLASH.type==='success'?'var(--green-bg)':'var(--red-bg)'};
-      color:${ADMIN_STU_FLASH.type==='success'?'var(--green)':'var(--red)'};">
-      ${ADMIN_STU_FLASH.message}
-    </div>` : '';
-  return `
-  <div class="page-head"><div><h1>Manage Students</h1><p>Pre-register a Student ID + password; the student activates it themselves with those exact credentials.</p></div></div>
-  <div class="dash-grid" style="grid-template-columns:1fr 1.6fr;">
-    <div class="card card-pad">
-      <div class="section-head"><h2>Add / Pre-Register Student</h2></div>
-      ${flash}
-      <div>
-        <label>Full Name</label>
-        <input type="text" id="stuName" required value="${ADD_STU_FORM.name}" oninput="ADD_STU_FORM.name=this.value">
-        <label>Student ID <span style="font-weight:400;color:var(--sub);">(leave blank to auto-generate)</span></label>
-        <input type="text" id="stuId" placeholder="e.g. ACA-004" value="${ADD_STU_FORM.studentId}" oninput="ADD_STU_FORM.studentId=this.value">
-        <label>Initial Password (min. 8 characters)</label>
-        <input type="text" id="stuPassword" required minlength="8" value="${ADD_STU_FORM.password}" oninput="ADD_STU_FORM.password=this.value" onkeydown="if(event.key==='Enter')handleAddStudent(event)">
-        <label>Email <span style="font-weight:400;color:var(--sub);">(optional)</span></label>
-        <input type="email" id="stuEmail" value="${ADD_STU_FORM.email}" oninput="ADD_STU_FORM.email=this.value">
-        <label>Phone <span style="font-weight:400;color:var(--sub);">(optional)</span></label>
-        <input type="text" id="stuPhone" value="${ADD_STU_FORM.phone}" oninput="ADD_STU_FORM.phone=this.value">
-        <button class="btn btn-gold" type="button" onclick="handleAddStudent(event)" style="width:100%;justify-content:center;" ${ADMIN_STU_SUBMITTING?'disabled':''}>
-          ${ic('user')} ${ADMIN_STU_SUBMITTING?'Pre-Registering…':'Pre-Register Student'}
-        </button>
-      </div>
-      <p style="font-size:11.5px;color:var(--sub);margin-top:12px;line-height:1.6;">The student is created as <b>Pre-registered</b>. They can't log in until they visit "Activate Student Account" and enter this exact Student ID + password.</p>
-    </div>
-    <div class="card card-pad">
-      <div class="section-head"><h2>All Students${ADMIN_STUDENTS?` (${ADMIN_STUDENTS.length})`:''}</h2></div>
-      <div style="margin-bottom:14px;">
-        <input type="text" id="stuSearch" placeholder="Search by name, Student ID, or email…" value="${ADMIN_STU_QUERY}" oninput="handleStudentSearch(this.value)" style="margin-bottom:0;">
-      </div>
-      ${ADMIN_STUDENTS===null?`<div class="empty-state">Loading…</div>`:
-        ADMIN_STUDENTS.length===0?`<div class="empty-state">No accounts found.</div>`:
-        ADMIN_STUDENTS.map(s=>renderAdminStudentRow(s)).join('')}
-    </div>
-  </div>`;
-}
-function renderAdminStudentRow(s){
-  const isEditing = EDITING_STU_ID===s.id;
-  const isResetting = RESETTING_STU_ID===s.id;
-  return `
-  <div class="chapter-card" style="margin-bottom:10px;">
-    <div class="chead">
-      <div>
-        <h3 style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">${s.name} ${statusPill(s.status)} ${s.role==='admin'?'<span class="pill pill-blue">Admin</span>':''}</h3>
-        <div class="cmeta">${s.studentId} · ${s.email||'no email'}${s.phone?' · '+s.phone:''}</div>
-        <div class="cmeta">Joined ${fmtDate(s.createdAt)} · Activated ${fmtDate(s.activatedAt)} · Last login ${fmtDateTime(s.lastLoginAt)}</div>
-      </div>
-      <div class="topic-actions">
-        <button class="btn btn-outline btn-sm" onclick="toggleEditStudent(${s.id})">${isEditing?'Cancel':'Edit'}</button>
-        <button class="btn btn-outline btn-sm" onclick="toggleResetPassword(${s.id})">${isResetting?'Cancel':'Reset Password'}</button>
-        ${s.status!=='DISABLED'
-          ? `<button class="btn btn-outline btn-sm" onclick="setStudentStatus(${s.id},'DISABLED')">Disable</button>`
-          : `<button class="btn btn-outline btn-sm" onclick="setStudentStatus(${s.id},'ACTIVE')">Enable</button>`}
-        ${s.status==='PRE_REGISTERED' ? `<button class="btn btn-blue btn-sm" onclick="setStudentStatus(${s.id},'ACTIVE')">Force Activate</button>` : ''}
-        <button class="btn btn-outline btn-sm" onclick="deleteStudent(${s.id},'${s.name.replace(/'/g,"\\'")}')" style="color:var(--red);">${ic('trash')} Delete</button>
-      </div>
-    </div>
-    ${isEditing ? `
-    <div class="topic-row" style="display:block;">
-      <div id="editMsg_${s.id}" style="display:none;font-size:12px;font-weight:600;margin-bottom:10px;padding:8px 12px;border-radius:9px;"></div>
-      <label>Name</label><input type="text" id="editName_${s.id}" value="${s.name}">
-      <label>Email</label><input type="email" id="editEmail_${s.id}" value="${s.email||''}">
-      <label>Phone</label><input type="text" id="editPhone_${s.id}" value="${s.phone||''}">
-      <button class="btn btn-navy btn-sm" onclick="saveStudentEdit(${s.id})">Save Changes</button>
-    </div>` : ''}
-    ${isResetting ? `
-    <div class="topic-row" style="display:block;">
-      <div id="resetMsg_${s.id}" style="display:none;font-size:12px;font-weight:600;margin-bottom:10px;padding:8px 12px;border-radius:9px;"></div>
-      <label>New Password (min. 8 characters)</label>
-      <input type="text" id="resetPw_${s.id}" minlength="8" placeholder="New password for ${s.studentId}">
-      <button class="btn btn-navy btn-sm" onclick="saveResetPassword(${s.id})">Set New Password</button>
-    </div>` : ''}
-  </div>`;
-}
-let stuSearchTimer = null;
-function handleStudentSearch(v){
-  ADMIN_STU_QUERY = v;
-  clearTimeout(stuSearchTimer);
-  stuSearchTimer = setTimeout(()=>{ ADMIN_STUDENTS=null; loadAdminStudents(v); }, 300);
-}
-function toggleEditStudent(id){ EDITING_STU_ID = EDITING_STU_ID===id ? null : id; RESETTING_STU_ID=null; render(); }
-function toggleResetPassword(id){ RESETTING_STU_ID = RESETTING_STU_ID===id ? null : id; EDITING_STU_ID=null; render(); }
-
-async function handleAddStudent(evt){
-  evt.preventDefault();
-  const { name, studentId, password, email, phone } = ADD_STU_FORM;
-
-  if(!name.trim() || password.length < 8){
-    ADMIN_STU_FLASH = { type:'error', message: 'Name and a password of at least 8 characters are required.' };
-    render();
-    return;
-  }
-
-  ADMIN_STU_SUBMITTING = true; ADMIN_STU_FLASH = null;
-  render();
-  try{
-    const res = await apiFetch('/admin/students', {
-      method:'POST',
-      body: JSON.stringify({ name: name.trim(), studentId: studentId.trim(), password, email: email.trim(), phone: phone.trim() }),
-    });
-    const data = await res.json();
-    if(res.ok){
-      ADMIN_STU_FLASH = { type:'success', message: `Pre-registered — Student ID ${data.user.studentId}. Give the student this ID and password to activate.` };
-      ADD_STU_FORM = { name:'', studentId:'', password:'', email:'', phone:'' };
-      ADMIN_STUDENTS = null;
-      loadAdminStudents(ADMIN_STU_QUERY); // re-fetches the list and re-renders when done
-    } else {
-      // Covers duplicate email / duplicate Student ID / validation errors --
-      // always a clear message, never a silent stuck state.
-      ADMIN_STU_FLASH = { type:'error', message: data.error || 'Could not create student.' };
-    }
-  }catch(e){
-    ADMIN_STU_FLASH = { type:'error', message:'Network error. Check your connection and try again.' };
-  } finally {
-    // Always reached, whether success, a handled error response, or a
-    // thrown exception -- the button can never get stuck disabled/loading.
-    ADMIN_STU_SUBMITTING = false;
-    render();
-  }
-}
-async function saveStudentEdit(id){
-  const name = document.getElementById('editName_'+id).value.trim();
-  const email = document.getElementById('editEmail_'+id).value.trim();
-  const phone = document.getElementById('editPhone_'+id).value.trim();
-  const msg = document.getElementById('editMsg_'+id);
-  try{
-    const res = await apiFetch('/admin/students/'+id, {method:'PATCH', body: JSON.stringify({name, email, phone})});
-    const data = await res.json();
-    msg.style.display='block';
-    if(res.ok){ msg.style.background='var(--green-bg)'; msg.style.color='var(--green)'; msg.textContent='Saved.'; EDITING_STU_ID=null; ADMIN_STUDENTS=null; loadAdminStudents(ADMIN_STU_QUERY); }
-    else { msg.style.background='var(--red-bg)'; msg.style.color='var(--red)'; msg.textContent = data.error||'Could not save.'; }
-  }catch(e){ msg.style.display='block'; msg.style.background='var(--red-bg)'; msg.style.color='var(--red)'; msg.textContent='Network error.'; }
-}
-async function saveResetPassword(id){
-  const newPassword = document.getElementById('resetPw_'+id).value;
-  const msg = document.getElementById('resetMsg_'+id);
-  try{
-    const res = await apiFetch('/admin/students/'+id+'/reset-password', {method:'POST', body: JSON.stringify({newPassword})});
-    const data = await res.json();
-    msg.style.display='block';
-    if(res.ok){ msg.style.background='var(--green-bg)'; msg.style.color='var(--green)'; msg.textContent='Password updated.'; setTimeout(()=>{RESETTING_STU_ID=null; render();},1200); }
-    else { msg.style.background='var(--red-bg)'; msg.style.color='var(--red)'; msg.textContent = data.error||'Could not reset password.'; }
-  }catch(e){ msg.style.display='block'; msg.style.background='var(--red-bg)'; msg.style.color='var(--red)'; msg.textContent='Network error.'; }
-}
-async function setStudentStatus(id, status){
-  try{
-    const res = await apiFetch('/admin/students/'+id+'/status', {method:'POST', body: JSON.stringify({status})});
-    if(res.ok){ ADMIN_STUDENTS=null; loadAdminStudents(ADMIN_STU_QUERY); }
-    else { const data = await res.json(); alert(data.error||'Could not update status.'); }
-  }catch(e){ alert('Network error.'); }
-}
-async function deleteStudent(id, name){
-  if(!confirm(`Permanently delete ${name}? This also removes their uploaded files. This cannot be undone.`)) return;
-  try{
-    const res = await apiFetch('/admin/students/'+id, {method:'DELETE'});
-    if(res.ok){ ADMIN_STUDENTS=null; loadAdminStudents(ADMIN_STU_QUERY); }
-    else { const data = await res.json(); alert(data.error||'Could not delete student.'); }
-  }catch(e){ alert('Network error.'); }
-}
-
+/* Admin and account-management features are intentionally excluded from this public static build. */
+function boot(){ if(testSession) view='testRunner'; render(); if(testSession) runTimer(); }
 boot();
 </script>
 </body>

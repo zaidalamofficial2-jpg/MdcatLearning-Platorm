@@ -1,61 +1,89 @@
-# Alam Creative Academy — Learning Management System
+# Alam Creative Academy — Static MDCAT Learning Platform
 
-A responsive, single-page LMS interface for **Alam Creative Academy**. The frontend is built with HTML, CSS and vanilla JavaScript. It includes student and administrator entry points and screens for learning resources, assessments and student progress.
+This is a GitHub Pages-compatible static conversion of the supplied `index.html`.
+The original visual design and the embedded PMDC MDCAT 2025 syllabus data have been
+retained. The original uploaded source is preserved separately at
+`original-source/index.html`.
 
-## Features in the frontend
+## Deploy to GitHub Pages
 
-- Student login and student-account activation screens
-- Separate administrator login screen
-- Student dashboard and subject/chapter navigation
-- Lecture and notes/resource views
-- Test configuration, test runner and result views
-- Doubt/support and progress views
-- Student profile and administrator student-management screens
-- Responsive layout with mobile navigation
+1. Extract this ZIP.
+2. Upload the contents of the `mdcat-static` folder to the **root** of the GitHub
+   repository `MdcatLearning-Platorm` (the folder should contain `index.html`).
+3. Commit and push to the repository's `main` branch.
+4. In GitHub, open **Settings → Pages** and select **Deploy from a branch**,
+   branch `main`, folder `/ (root)`.
+5. Wait for GitHub Pages to publish.
 
-> **Important — backend required:** This repository contains the frontend only. Authentication, sessions, student management, file uploads and persistent data are requested from a Node.js backend through `/api` endpoints. The original preview-only mock API and demo credentials have been removed. Without the matching backend, login and data-driven features will not work. GitHub Pages can host the static interface, but it cannot run the Node.js/SQLite backend.
+Expected public URL:
 
-## Run locally
+<https://zaidalamofficial2-jpg.github.io/MdcatLearning-Platorm/>
 
-You can open `index.html` directly to inspect the interface. For a local static server, from this folder run:
+No build step, package manager, Node.js server, PHP, Python server, database, or
+backend API is required after deployment.
 
-```bash
-python -m http.server 8000
-```
+## Included functionality
 
-Then visit <http://localhost:8000>. This only serves the frontend; it does not provide the API backend.
+- Public visitor access; no login, activation, subscription, or admin portal.
+- Existing five MDCAT subjects, chapters, topic notes, and MCQ bank retained.
+- Topic-wise and chapter-wise test configuration, timed MCQ tests, answer checking,
+  scoring, subject breakdown, and answer review.
+- Full mock test generator using the existing subject weightings.
+- Local progress tracking and test history.
+- Saved MCQ attempt records and topic completion records.
+- Topic bookmarks for revision.
+- Import additional MCQs using the original `.txt` question format.
+- Save lecture and notes files in browser IndexedDB, then download or delete them
+  on the same browser/device.
+- Export/reset local study data from the Profile page.
+- Original responsive layout and CSS media queries retained.
 
-## Deploy on GitHub Pages
+## Local data and privacy
 
-1. Create a GitHub repository (for example, `alam-creative-academy-lms`).
-2. Upload `index.html` and this `README.md` to the repository root.
-3. Open **Settings → Pages**.
-4. Under **Build and deployment**, choose **Deploy from a branch**.
-5. Select the `main` branch and `/ (root)`, then save.
-6. Wait for GitHub Pages to publish the site.
+- Progress, test scores/history, bookmarks, imported MCQs, and MCQ attempts are
+  stored in `localStorage`.
+- User-added lecture and notes files are stored in IndexedDB.
+- This information remains in the visitor's browser/device. It does **not** sync
+  between devices, is not shared with other visitors, and can be lost if the
+  visitor clears browser/site data.
+- Each student should use their own browser profile/device if they want separate
+  progress.
 
-The published page will show the frontend. To make login, student records and uploads functional, deploy the corresponding Node.js backend and SQLite/data storage separately, then configure the frontend API base URL to point to that backend. The backend source is not included in this frontend package, so its routes, security settings and hosting configuration must be supplied and verified separately.
+## Features that still require an external service
 
-## Project structure
+These cannot be securely implemented by a static public website alone and have
+therefore not been represented as working server features:
 
-```text
-alam-creative-academy-lms/
-├── index.html
-└── README.md
-```
+- Admin/student account creation, authentication, activation, password changes,
+  account management, and role-based access.
+- Shared/cloud file uploads and a central lecture/notes library.
+- Live mentor replies, real-time doubt support, or communication between students
+  and instructors.
+- Cross-device progress synchronization, centralized student analytics, and
+  backups controlled by the academy.
+- Any private/admin data or server-side permissions.
 
-## Technology
+The Doubt Notebook stores questions locally for the visitor's own revision; it
+does not send questions to a mentor.
 
-- HTML5
-- CSS3
-- Vanilla JavaScript
-- Google Fonts (Poppins and Inter)
-- Backend integration expected through HTTP `/api` routes
+## External assets
 
-## Security note
+The original Google Fonts stylesheet is retained for Poppins and Inter. If Google
+Fonts are unavailable, the page falls back to local system sans-serif fonts. The
+application itself does not depend on that CDN to function.
 
-Do not put real passwords, API secrets, private student information or database files in this public repository. Use HTTPS and secure server-side authentication/session handling in the backend.
+## Validation performed
 
-## License
+- JavaScript syntax checked with `node --check`.
+- Runtime smoke tests using a mocked browser DOM checked dashboard rendering,
+  direct public access, subject/chapter navigation, topic notes, test setup,
+  answer selection, scoring/results, bookmarks, local progress persistence,
+  MCQ attempt storage, and active-test restoration after simulated refresh.
+- Source comparison confirmed that the full `SUBJECTS` syllabus/data block is
+  byte-for-byte identical to the supplied original source.
+- Confirmed that the static application contains no `fetch()` calls, `/api`
+  endpoints, `apiFetch`, or `XMLHttpRequest` backend calls.
 
-No license has been specified. All rights remain with the project owner unless a license is added to this repository.
+A full hosted-browser/device test against the final GitHub Pages URL remains to be
+performed after the files are pushed. Browser IndexedDB file handling should also
+be checked on the deployed HTTPS URL.
